@@ -1,0 +1,11 @@
+{
+  "name": "hsg-property",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HSG Attorneys property toolkit — installable web app (calculators + lead capture).",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "test:calc": "node scripts/test-calc.mjs"
+  }
+}

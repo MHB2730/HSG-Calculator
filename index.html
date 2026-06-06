@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>HSG Property</title>
+
+  <!-- PWA / theme -->
+  <meta name="theme-color" content="#121212">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HSG Property">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png">
+
+  <!-- Fonts (degrade to system fallbacks offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Slab:wght@500;700&display=swap">
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ============ APP BAR ============ -->
+    <header class="appbar">
+      <div class="appbar-inner">
+        <img class="appbar-logo" src="assets/hsg-logo.png" alt="HSG Attorneys"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <span class="appbar-logo-fallback" aria-hidden="true">
+          <span class="lf-1">HSG</span><br><span class="lf-2">Property</span>
+        </span>
+        <div class="appbar-titles">
+          <span class="appbar-title" data-site="appName">HSG Property</span>
+          <span class="appbar-sub" data-site="tagline">Property Cost &amp; Bond Toolkit</span>
+        </div>
+        <span class="appbar-spacer"></span>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ TABS ============ -->
+    <div class="tabs-wrap">
+      <div class="app-main" style="padding-top:var(--space-4);padding-bottom:0;">
+        <nav class="tabs" role="tablist" aria-label="Calculators">
+          <button class="tab active" data-tab="transfer" role="tab">Transfer cost</button>
+          <button class="tab" data-tab="bond" role="tab">Bond costs</button>
+          <button class="tab" data-tab="repayment" role="tab">Repayment</button>
+          <button class="tab" data-tab="afford" role="tab">Affordability</button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- ============ MAIN ============ -->
+    <main class="app-main">
+
+      <!-- Install banner -->
+      <div class="install-banner is-hidden" id="install-banner">
+        <img class="install-thumb" src="icons/icon-192.png" alt="">
+        <div class="install-copy">Add <strong>HSG Property</strong> to your home screen — works offline.</div>
+        <div class="install-actions">
+          <button class="btn btn-primary btn-sm" id="install-btn" type="button">Install</button>
+          <button class="btn-text" id="install-dismiss" type="button" aria-label="Dismiss">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- iOS install hint -->
+      <div class="ios-hint is-hidden" id="ios-hint">
+        <svg class="ios-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8.5 6.5 12 3l3.5 3.5"/><path d="M6 12H5a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2h-1"/></svg>
+        <div class="ios-text">To install: tap <strong>Share</strong> then <strong>Add to Home Screen</strong>.</div>
+        <button class="btn-text" id="ios-hint-close" type="button" aria-label="Dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- ---------- TRANSFER ---------- -->
+      <section id="panel-transfer" class="panel active" role="tabpanel">
+        <div class="panel-card">
+          <h1 class="panel-title">Transfer cost estimate</h1>
+          <p class="panel-intro">Conveyancing fees, deeds office &amp; transfer duty on a property purchase.</p>
+          <div class="fields">
+            <div class="field">
+              <label class="field-label" for="transfer-price">Purchase price</label>
+              <div class="input-money">
+                <span class="cur">R</span>
+                <input id="transfer-price" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+              </div>
+            </div>
+          </div>
+          <div id="transfer-results" class="results is-hidden"></div>
+          <p class="results-hint">Enter a purchase price to see the breakdown.</p>
+          <p class="trust-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg>
+            Estimate only — based on current SARS / LSSA / Deeds Office tariffs.
+          </p>
+          <div class="actions">
+            <button class="btn btn-ghost" data-action="share" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+              Share
+            </button>
+            <button class="btn btn-primary btn-quote" data-action="quote" type="button">Get a formal quote</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- BOND COSTS ---------- -->
+      <section id="panel-bond" class="panel" role="tabpanel">
+        <div class="panel-card">
+          <h1 class="panel-title">Bond registration cost</h1>
+          <p class="panel-intro">Attorney fees and deeds office charges to register your home loan.</p>
+          <div class="fields">
+            <div class="field">
+              <label class="field-label" for="bond-loan">Bond / loan amount</label>
+              <div class="input-money">
+                <span class="cur">R</span>
+                <input id="bond-loan" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+              </div>
+            </div>
+          </div>
+          <div id="bond-results" class="results is-hidden"></div>
+          <p class="results-hint">Enter a loan amount to see the breakdown.</p>
+          <p class="trust-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg>
+            Estimate only — based on current LSSA / Deeds Office tariffs.
+          </p>
+          <div class="actions">
+            <button class="btn btn-ghost" data-action="share" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+              Share
+            </button>
+            <button class="btn btn-primary btn-quote" data-action="quote" type="button">Get a formal quote</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- REPAYMENT ---------- -->
+      <section id="panel-repayment" class="panel" role="tabpanel">
+        <div class="panel-card">
+          <h1 class="panel-title">Monthly bond repayment</h1>
+          <p class="panel-intro">What your home loan could cost each month.</p>
+          <div class="fields">
+            <div class="field">
+              <label class="field-label" for="rep-loan">Loan amount</label>
+              <div class="input-money">
+                <span class="cur">R</span>
+                <input id="rep-loan" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="rep-rate">Interest rate</label>
+                <div class="input-plain">
+                  <input id="rep-rate" type="text" inputmode="decimal" autocomplete="off" placeholder="11.75">
+                  <span class="suffix">%</span>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="rep-years">Term</label>
+                <div class="input-plain">
+                  <input id="rep-years" type="text" inputmode="numeric" autocomplete="off" placeholder="20">
+                  <span class="suffix">yrs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="rep-results" class="results is-hidden"></div>
+          <p class="results-hint">Enter a loan amount to estimate your repayment.</p>
+          <div class="actions">
+            <button class="btn btn-ghost" data-action="share" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+              Share
+            </button>
+            <button class="btn btn-primary btn-quote" data-action="quote" type="button">Get a formal quote</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- AFFORDABILITY ---------- -->
+      <section id="panel-afford" class="panel" role="tabpanel">
+        <div class="panel-card">
+          <h1 class="panel-title">What can you afford?</h1>
+          <p class="panel-intro">A rough guide to the property price your income could support.</p>
+          <div class="fields">
+            <div class="field">
+              <label class="field-label" for="aff-gross">Gross monthly income</label>
+              <div class="input-money">
+                <span class="cur">R</span>
+                <input id="aff-gross" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="aff-expenses">Monthly expenses &amp; debt</label>
+              <div class="input-money">
+                <span class="cur">R</span>
+                <input id="aff-expenses" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="aff-deposit">Deposit available</label>
+              <div class="input-money">
+                <span class="cur">R</span>
+                <input id="aff-deposit" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="aff-rate">Interest rate</label>
+                <div class="input-plain">
+                  <input id="aff-rate" type="text" inputmode="decimal" autocomplete="off" placeholder="11.75">
+                  <span class="suffix">%</span>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label" for="aff-years">Term</label>
+                <div class="input-plain">
+                  <input id="aff-years" type="text" inputmode="numeric" autocomplete="off" placeholder="20">
+                  <span class="suffix">yrs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="aff-results" class="results is-hidden"></div>
+          <p class="results-hint">Enter your income to see what you could afford.</p>
+          <div class="actions">
+            <button class="btn btn-ghost" data-action="share" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+              Share
+            </button>
+            <button class="btn btn-primary btn-quote" data-action="quote" type="button">Get a formal quote</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img class="footer-logo" src="assets/hsg-logo.png" alt="HSG Attorneys">
+        </div>
+        <p class="disclaimer" data-site="disclaimer">
+          These calculators provide estimates for guidance only and do not constitute a formal quotation or legal advice. Figures are based on current published tariffs and may change. Contact HSG Attorneys for a formal quote.
+        </p>
+        <div class="footer-contact">
+          <a class="btn btn-ghost btn-sm" id="contact-phone" href="tel:">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h3l1.5 5-2 1.5a12 12 0 0 0 6 6l1.5-2 5 1.5V19a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 1-2Z"/></svg>
+            Call HSG
+          </a>
+          <a class="btn btn-ghost btn-sm" id="contact-web" href="https://hsgattorneys.co.za" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+            Visit website
+          </a>
+        </div>
+        <p class="copyright">
+          © <span id="year"></span> HSG Attorneys
+          <span class="division">A division of GeoAfrika Group</span>
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============ SHARE SHEET ============ -->
+  <div class="modal" id="share-sheet" role="dialog" aria-modal="true" aria-label="Share estimate">
+    <div class="sheet">
+      <div class="sheet-head"><h3>Share this estimate</h3></div>
+      <div class="sheet-options">
+        <button class="btn btn-ghost btn-block" id="share-whatsapp" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.8.8-2.8-.2-.3A8 8 0 1 1 12 20Zm4.4-5.6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4a.4.4 0 0 0 0-.4l-.8-1.9c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c2.4 1 2.4.7 2.9.6a2.5 2.5 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3Z"/></svg>
+          WhatsApp
+        </button>
+        <button class="btn btn-ghost btn-block" id="share-email" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/></svg>
+          Email
+        </button>
+        <button class="btn btn-ghost btn-block" id="share-copy" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+          Copy to clipboard
+        </button>
+      </div>
+      <button class="btn-text btn-block" data-action="close-modal" data-target="share-sheet" type="button" style="margin-top:var(--space-3);">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ============ LEAD / QUOTE FORM ============ -->
+  <div class="modal" id="lead-modal" role="dialog" aria-modal="true" aria-label="Get a formal quote">
+    <div class="sheet sheet-form">
+      <div class="sheet-head">
+        <h3>Get a formal quote</h3>
+        <button class="btn-text" data-action="close-modal" data-target="lead-modal" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="sheet-summary" id="lead-summary"></div>
+      <form id="lead-form">
+        <div class="field">
+          <label class="field-label" for="lead-name">Full name</label>
+          <div class="input-plain"><input id="lead-name" name="name" type="text" autocomplete="name" placeholder="Your name"></div>
+          <div class="field-error">Please enter your name.</div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="lead-phone">Phone</label>
+          <div class="input-plain"><input id="lead-phone" name="phone" type="tel" autocomplete="tel" placeholder="071 234 5678"></div>
+          <div class="field-error">Please enter a contact number.</div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="lead-email">Email</label>
+          <div class="input-plain"><input id="lead-email" name="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+          <div class="field-error">Please enter a valid email.</div>
+        </div>
+        <input type="hidden" id="lead-scenario" name="scenario">
+        <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
+          <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
+        </div>
+        <label class="consent">
+          <input type="checkbox" name="consent">
+          <span class="consent-text">I consent to <strong data-site="firmName">HSG Attorneys</strong> contacting me about this enquiry and processing my information in line with POPIA.</span>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit" id="lead-submit">
+          <span class="spinner" aria-hidden="true"></span>
+          <span class="btn-label">Send to HSG</span>
+        </button>
+      </form>
+      <div class="lead-success" id="lead-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+        <strong>Thank you — your enquiry is on its way.</strong>
+        <p style="color:var(--muted);font-size:var(--fs-sm);margin-top:4px;">An HSG consultant will be in touch shortly.</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
