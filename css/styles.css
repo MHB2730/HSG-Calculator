@@ -767,7 +767,7 @@ input::placeholder { color: var(--muted); opacity: .6; font-weight: 400; }
   padding-bottom: max(var(--space-6), env(safe-area-inset-bottom));
 }
 .footer-inner { max-width: var(--maxw); margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-4); }
-.footer-brand { display: flex; align-items: center; gap: var(--space-3); }
+.footer-brand { display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
 .footer-logo { height: 30px; width: auto; opacity: .95; }
 .disclaimer { font-size: var(--fs-fine); color: var(--on-chrome-soft); line-height: 1.5; }
 .footer-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
