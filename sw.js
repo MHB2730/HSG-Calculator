@@ -1,6 +1,6 @@
 /* sw.js — service worker for offline use.
    Bump CACHE when you change files so phones pick up the new version. */
-const CACHE = 'hsg-property-v5';
+const CACHE = 'hsg-property-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -8,6 +8,8 @@ const ASSETS = [
   './css/styles.css',
   './js/app.js',
   './js/tariffs.js',
+  './js/sharecard.js',
+  './tariffs.json',
   './assets/hsg-logo.png',
   './assets/brand/emblem-mask.png',
   './icons/icon-192.png',

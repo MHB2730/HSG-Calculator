@@ -4,7 +4,7 @@
 // verified engine in tariffs.js (exact parity with the HSG website).
 // =====================================================================
 import {
-  transferCostBreakdown, bondCostBreakdown, bondRepayment, affordability,
+  transferCostBreakdown, bondCostBreakdown, bondRepayment, affordability, loadRemoteRates,
 } from './tariffs.js';
 import { buildShareCard } from './sharecard.js';
 
@@ -556,6 +556,9 @@ function init() {
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") $$(".modal.open").forEach(m => closeModal(m.id));
   });
+
+  // Pull the firm's live rates (tariffs.json). Baked-in values are the offline fallback.
+  loadRemoteRates().then((applied) => { if (applied) recompute(activeTab); }).catch(() => {});
 
   registerSW();
 }

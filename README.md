@@ -32,11 +32,16 @@ Fill in the TODOs (no coding needed):
   **emailed to the firm**. If blank, the form falls back to opening the visitor's
   own email app addressed to `email`.
 
-## Where the numbers live — `js/tariffs.js`
-Everything (SARS duty bands, the LSSA fee formula, Deeds Office tables, the fixed
-disbursements: rates cert R830, disbursements R1900, FICA R520, VAT 15%) is in the
-`CONFIG` object at the top. When SARS / LSSA / the Deeds Office change their fees,
-edit this one file and every calculator updates. Re-run `npm run test:calc` after.
+## Where the numbers live — `tariffs.json` (firm-controlled)
+The app loads its rates from **`tariffs.json`** on every online load. So when SARS /
+the LSSA tariff / the Deeds Office change their fees, edit that **one small file** on
+the host and every installed app updates on the next open — **no full redeploy**. Use
+`null` for an "and above" top band.
+
+The same values are baked into `js/tariffs.js` (`DEFAULTS`) as the **offline fallback**,
+and any bad/typo'd value in `tariffs.json` is ignored (the verified defaults stay), so a
+mistake can never break a quote. After a change, verify with `npm run test:calc` and
+`npm run test:rates`.
 
 ## Deploy (cPanel / any host)
 1. Point a subdomain, e.g. `app.hsgattorneys.co.za`, at a folder.
@@ -63,11 +68,14 @@ manifest.webmanifest       installable-app settings (theme/icons)
 sw.js                      offline cache (service worker) — bump CACHE on changes
 css/styles.css             the visual design (monochrome, light + dark themes)
 js/app.js                  app controller + SITE settings (tabs, share, lead, install, theme)
-js/tariffs.js              THE CALCULATION BRAIN (all SARS / LSSA / Deeds rates & fees)
+js/tariffs.js              THE CALCULATION BRAIN (baked-in DEFAULTS + tariffs.json loader)
+js/sharecard.js            branded share-image generator (canvas)
+tariffs.json               firm-editable rates — edit to update fees (loaded at runtime)
 assets/hsg-logo.png        white HSG lockup (sits on the black app bar + footer)
 assets/brand/              logo lockups (black/white) + emblem watermark
 icons/                     installable-app icons (192 / 512 / maskable / apple-touch)
 scripts/serve.mjs          tiny local preview server
 scripts/test-calc.mjs      calculation sanity checks
+scripts/test-rates.mjs     rates-file + override tests
 DESIGN-BRIEF.md            the design spec used for the visual design
 ```
