@@ -43,7 +43,7 @@ alter table public.lookup_attempts enable row level security;
 -- 3. Hardened client_lookup. VOLATILE (it now writes), throttled, audited, minimised.
 create or replace function public.client_lookup(p_reference text, p_surname text)
 returns jsonb
-language plpgsql volatile security definer set search_path = public as $$
+language plpgsql volatile security definer set search_path = public, extensions as $$
 declare
   m public.matters%rowtype;
   result jsonb;
@@ -58,16 +58,14 @@ begin
     return null;
   end if;
 
-  -- Caller IP (set by the platform proxy as x-forwarded-for); never fatal.
+  -- Best-effort per-IP throttle (max 20 lookups/IP/minute). Fully wrapped so ANY
+  -- failure here — IP read, digest, insert — silently skips throttling and never
+  -- breaks the client's lookup.
   begin
     v_ip := split_part(coalesce(current_setting('request.headers', true)::jsonb ->> 'x-forwarded-for',''), ',', 1);
-  exception when others then v_ip := null; end;
-  v_hash := encode(digest(coalesce(nullif(v_ip,''),'unknown') || '|hsg-lookup', 'sha256'), 'hex');
-
-  -- Throttle: max 20 lookups per IP per minute. Definer context => reads its own counts.
-  begin
+    v_hash := encode(digest(coalesce(nullif(v_ip,''),'unknown') || '|hsg-lookup', 'sha256'), 'hex');
     insert into public.lookup_attempts(ip_hash, window_start, count) values (v_hash, v_window, 1)
-      on conflict (ip_hash, window_start) do update set count = public.lookup_attempts.count + 1
+      on conflict (ip_hash, window_start) do update set count = lookup_attempts.count + 1
       returning count into v_count;
     if v_count > 20 then
       begin
