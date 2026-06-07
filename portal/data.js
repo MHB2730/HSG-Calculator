@@ -5,10 +5,10 @@
  * the two sample matters below, and shared between the client tracker and the
  * staff admin — so ticking a milestone in admin updates the client view.
  *
- * LATER: these functions get re-pointed at Supabase (client_lookup RPC for the
- * client side; authed table access for admin) and return the SAME shapes, so
- * the UI doesn't change.
+ * The client tracker now reads LIVE from Supabase (the client_lookup RPC); the
+ * staff admin still uses this local store for now (wired to Supabase + auth next).
  */
+import { sb } from './supabase.js';
 
 export const STAGES = [
   { key: 'offer',      label: 'Offer accepted' },
@@ -86,6 +86,19 @@ export function resetStore() { saveStore(clone(SEED)); }
 
 // ---- client side ----
 export async function lookupMatter(reference, surname) {
+  // Live: Supabase `client_lookup` RPC (reference + surname). Falls back to the
+  // local sample data only if Supabase is unreachable (offline / not configured).
+  if (sb) {
+    try {
+      const { data, error } = await sb.rpc('client_lookup', {
+        p_reference: (reference || '').trim(), p_surname: (surname || '').trim(),
+      });
+      if (!error) {
+        if (data) { data.documents = data.documents || []; return data; }
+        return null; // clean "not found" from the live database
+      }
+    } catch { /* network/config issue → fall back to the sample data below */ }
+  }
   const ref = (reference || '').trim().toLowerCase();
   const sn = (surname || '').trim().toLowerCase();
   const m = getStore().find(x => x.reference.toLowerCase() === ref && x.buyerSurname.toLowerCase() === sn);
