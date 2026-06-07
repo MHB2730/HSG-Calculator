@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>HSG Property — Transfer Tracker</title>
+  <meta name="theme-color" content="#121212">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body>
+  <div class="app">
+    <header class="appbar">
+      <div class="appbar-inner">
+        <img class="appbar-logo" src="../assets/hsg-logo.png" alt="HSG Attorneys" onerror="this.style.display='none'">
+        <div class="appbar-titles"><span class="appbar-sub">Transfer tracker</span></div>
+        <span class="appbar-spacer"></span>
+        <a class="btn btn-ghost btn-sm" href="../index.html">Calculators</a>
+      </div>
+    </header>
+
+    <main class="portal-main">
+      <!-- Lookup -->
+      <section id="lookup">
+        <div class="lookup-card">
+          <h1>Track your transfer</h1>
+          <p class="sub">Enter your HSG reference number and surname to see live progress.</p>
+          <form id="portal-form" novalidate>
+            <label class="field">
+              <span class="field-label">Reference number</span>
+              <div class="input-plain"><input id="lk-reference" type="text" placeholder="HSG-2026-0000" autocomplete="off"></div>
+            </label>
+            <label class="field">
+              <span class="field-label">Surname</span>
+              <div class="input-plain"><input id="lk-surname" type="text" placeholder="Your surname" autocomplete="off"></div>
+            </label>
+            <button class="btn btn-primary btn-block" id="lk-go" type="submit">View my transfer</button>
+          </form>
+          <div class="error is-hidden" id="lk-error"></div>
+          <p class="demo-hint" id="demo-hint"></p>
+        </div>
+      </section>
+
+      <!-- Result (filled by portal.js) -->
+      <section id="matter" class="is-hidden"></section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <p class="disclaimer">Progress shown here is updated by HSG Attorneys and is provided for guidance only.</p>
+        <p class="copyright">© <span id="year"></span> HSG Attorneys <span class="division">A division of GeoAfrika Group</span></p>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="portal.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+/* portal.css — client portal (transfer tracker). Loads AFTER css/styles.css and reuses its tokens. */
+.portal-main { max-width: var(--maxw); margin: 0 auto; padding: 16px 12px 40px; flex: 1; }
+
+.lookup-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-1); padding: 18px 16px; }
+.lookup-card h1 { font-size: 1.35rem; margin: 0 0 4px; }
+.lookup-card .sub { color: var(--muted); margin: 0 0 14px; font-size: .92rem; }
+.demo-hint { margin-top: 12px; font-size: .78rem; color: var(--muted); }
+.error { color: var(--ink); background: var(--brand-50); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 12px; font-size: .88rem; }
+
+.matter-head { padding: 16px; margin-bottom: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-1); }
+.matter-ref { font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.matter-prop { font-size: 1.3rem; margin: 2px 0 4px; }
+.matter-meta { color: var(--muted); font-size: .88rem; }
+
+.banner { padding: 16px; margin-bottom: 18px; background: var(--ink-chrome); color: var(--on-chrome); border-radius: var(--radius); }
+.banner-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--on-chrome-soft); }
+.banner-step { font-weight: 800; font-size: 1.2rem; font-family: var(--font-display); margin: 3px 0 5px; }
+.banner-note { color: var(--on-chrome-soft); font-size: .9rem; margin: 0; }
+
+.sec { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 18px 2px 12px; }
+
+.stepper { list-style: none; margin: 0; padding: 0; }
+.step { display: flex; gap: 14px; padding: 0 0 18px; position: relative; }
+.step::before { content: ''; position: absolute; left: 13px; top: 28px; bottom: -2px; width: 2px; background: var(--line); }
+.step:last-child::before { display: none; }
+.step-node { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 700; z-index: 1; }
+.step-done .step-node { background: var(--ink-chrome); border-color: var(--ink-chrome); color: var(--on-chrome); }
+.step-current .step-node { border-color: var(--ink-chrome); box-shadow: 0 0 0 4px var(--brand-50); }
+.step-current .step-node::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--ink-chrome); }
+.step-body { padding-top: 3px; }
+.step-label { font-weight: 600; }
+.step-current .step-label { font-weight: 800; }
+.step-upcoming .step-label { color: var(--muted); }
+.step-date { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+.step-note { font-size: .85rem; color: var(--ink); margin-top: 4px; }
+
+.docs { list-style: none; margin: 0; padding: 0; }
+.doc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 8px; }
+.doc small { display: block; color: var(--muted); font-size: .75rem; }
+.docs-lock { background: var(--surface); border: 1px dashed var(--line-strong); border-radius: var(--radius); padding: 16px; text-align: center; }
+.docs-lock p { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
+.muted { color: var(--muted); }
