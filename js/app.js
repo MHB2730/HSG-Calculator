@@ -327,30 +327,10 @@ async function doShare(method) {
 
 /* ---------- Call HSG (regional) ---------- */
 function openCallSheet() {
+  // Show both offices and let the visitor choose. (Auto-detect was removed: it sent the
+  // visitor's IP to a third party (ipapi.co) with no consent — a POPIA concern — and
+  // browser timezone can't tell KZN from the Western Cape, so a manual choice is honest.)
   openModal("call-sheet");
-  detectRegion().then(markNearOffice).catch(() => {});
-}
-let _region, _regionTried = false;
-async function detectRegion() {
-  if (_regionTried) return _region;
-  _regionTried = true;
-  try {
-    const res = await fetch("https://ipapi.co/json/", { cache: "no-store" });
-    const d = await res.json();
-    _region = d && d.region ? String(d.region) : null;
-  } catch { _region = null; }
-  return _region;
-}
-function markNearOffice(region) {
-  const r = (region || "").toLowerCase();
-  let nearCity = null;
-  if (r.includes("kwazulu") || r.includes("natal")) nearCity = "Durban";
-  else if (r.includes("western cape") || r.includes("wes-kaap") || r.includes("cape town")) nearCity = "Cape Town";
-  SITE.offices.forEach((o, i) => {
-    const el = document.getElementById("call-office-" + i);
-    const tag = el && el.querySelector(".near-tag");
-    if (tag) tag.hidden = !(nearCity === o.city);
-  });
 }
 
 /* ---------- Lead / quote ---------- */

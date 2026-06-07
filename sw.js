@@ -1,6 +1,6 @@
 /* sw.js — service worker for offline use.
    Bump CACHE when you change files so phones pick up the new version. */
-const CACHE = 'hsg-property-v8';
+const CACHE = 'hsg-property-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -39,6 +39,10 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
+
+  // Never cache the confidential portal/admin pages — always hit the network so a
+  // shared device can't serve a stale or another user's authenticated view.
+  if (sameOrigin && url.pathname.includes('/portal/')) return;
 
   if (sameOrigin) {
     // NETWORK-FIRST for our own HTML/CSS/JS so updated code AND fee tables always

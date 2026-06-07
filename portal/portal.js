@@ -1,5 +1,5 @@
 /* portal.js — client transfer tracker (prototype, sample data). */
-import { STAGES, lookupMatter, DEMO_HINT } from './data.js';
+import { STAGES, lookupMatter } from './data.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const money = n => 'R ' + Math.round(Number(n) || 0).toLocaleString('en-ZA');
@@ -40,7 +40,7 @@ function render(m) {
     <div class="matter-head">
       <div class="matter-ref">${esc(m.reference)}</div>
       <h1 class="matter-prop">${esc(m.property)}</h1>
-      <div class="matter-meta">${esc(m.buyerName)} · ${money(m.price)} · Conveyancer: ${esc(m.conveyancer)}</div>
+      <div class="matter-meta">${esc(m.buyerName)}${m.price ? ' · ' + money(m.price) : ''} · Conveyancer: ${esc(m.conveyancer)}</div>
     </div>
     <div class="banner">
       <div class="banner-label">Where we are now</div>
@@ -83,8 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   $('#portal-form').addEventListener('submit', (e) => { e.preventDefault(); go(); });
   $('#year').textContent = new Date().getFullYear();
-  const hint = $('#demo-hint');
-  if (hint) hint.textContent = 'Demo logins to try — ' + DEMO_HINT().join('   ·   ');
   // Allow the admin's "view as client" link to prefill + auto-open a matter.
   const p = new URLSearchParams(location.search);
   const qref = p.get('ref'), qsn = p.get('surname');

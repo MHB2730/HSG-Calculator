@@ -104,7 +104,7 @@ export async function lookupMatter(reference, surname) {
   const m = getStore().find(x => x.reference.toLowerCase() === ref && x.buyerSurname.toLowerCase() === sn);
   return m ? clone(m) : null;
 }
-export const DEMO_HINT = () => getStore().map(m => `${m.reference} / ${m.buyerSurname}`);
+// (DEMO_HINT removed — the public tracker must not advertise working reference/surname pairs.)
 
 // ---- admin side: LIVE (Supabase) ----
 // Used by the staff admin once signed in. Maps between the app's camelCase shape
@@ -164,8 +164,9 @@ export async function upsertMatterRemote(matter) {
       date_done: isISODate(dv) ? dv : null, expected_date: isISODate(dv) ? null : (dv || null),
       note: String(ms.note || '').trim() || null };
   });
-  const { error: e2 } = await sb.from('milestones').upsert(rows, { onConflict: 'matter_id,stage_key' });
+  const { data: msSaved, error: e2 } = await sb.from('milestones').upsert(rows, { onConflict: 'matter_id,stage_key' }).select('matter_id');
   if (e2) throw e2;
+  if (!msSaved || !msSaved.length) throw new Error('row-level: milestone write blocked');
   return matter;
 }
 
