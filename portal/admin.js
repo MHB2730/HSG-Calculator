@@ -5,7 +5,9 @@ const $ = (s, r = document) => r.querySelector(s);
 const listEl = () => $('#admin-list');
 const edEl = () => $('#admin-editor');
 const stageLabel = key => (STAGES.find(s => s.key === key) || { label: 'Registered' }).label;
-const esc = s => String(s == null ? '' : s).replace(/"/g, '&quot;');
+// Full HTML escape (covers text content AND quoted attribute values).
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
+  (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let editing = null;
 
@@ -20,8 +22,8 @@ function showList() {
   const rows = listMatters().map(m => `
     <li><button class="matter-row" data-ref="${esc(m.reference)}">
       <span>
-        <span class="mr-prop">${m.property || '(no property)'}</span>
-        <span class="mr-sub">${m.reference} · ${m.buyerName || ''} (${m.buyerSurname})</span>
+        <span class="mr-prop">${esc(m.property || '(no property)')}</span>
+        <span class="mr-sub">${esc(m.reference)} · ${esc(m.buyerName || '')} (${esc(m.buyerSurname)})</span>
       </span>
       <span class="mr-badge">${stageLabel(m.current)}</span>
     </button></li>`).join('');
@@ -104,6 +106,8 @@ function saveEditor() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const lg = document.querySelector('.appbar-logo');
+  if (lg) { lg.addEventListener('error', () => { lg.style.display = 'none'; }); if (lg.complete && lg.naturalWidth === 0) lg.style.display = 'none'; }
   const y = $('#year'); if (y) y.textContent = new Date().getFullYear();
   $('#new-matter').onclick = () => { const t = newMatterTemplate(); t.reference = nextReference(); showEditor(t); };
   $('#reset-demo').onclick = () => { if (confirm('Reset demo data back to the two sample matters?')) { resetStore(); showList(); toast('Demo data reset'); } };

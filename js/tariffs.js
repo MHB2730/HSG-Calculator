@@ -58,7 +58,9 @@ export const CONFIG = {
     return 66370 + 5160 * Math.ceil((amount - 5000000) / 1000000);
   },
 
-  // --- Deeds Office registration fees (gazette 52191) ---
+  // --- Deeds Office registration fees (Government Gazette 54225, GN 7180; effective 1 April 2026) ---
+  // (Verified 2026-06-07 against the Chief Registrar of Deeds; values current. The earlier
+  //  Gazette 52191 / CRC 2 of 2025 was the 1 April 2025 schedule.)
   // TRANSFER (Item 1(b)): [upper limit of band, fee]. Last row applies above the table.
   deedsTransferBands: [
     [100000, 50], [200000, 114], [300000, 727], [600000, 956],

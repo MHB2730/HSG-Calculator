@@ -4,15 +4,19 @@ import { STAGES, lookupMatter, DEMO_HINT } from './data.js';
 const $ = (s, r = document) => r.querySelector(s);
 const money = n => 'R ' + Math.round(Number(n) || 0).toLocaleString('en-ZA');
 const labelFor = (m) => m.label || (STAGES.find(s => s.key === m.key) || {}).label || m.key;
+// Escape ALL data interpolated into HTML — prevents stored XSS from matter
+// data (names, property, notes) once it comes from staff/Supabase input.
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
+  (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function stepperHTML(milestones) {
   return '<ol class="stepper">' + milestones.map(m => `
-    <li class="step step-${m.state}">
+    <li class="step step-${esc(m.state)}">
       <span class="step-node">${m.state === 'done' ? '✓' : ''}</span>
       <div class="step-body">
-        <div class="step-label">${labelFor(m)}</div>
-        ${m.date ? `<div class="step-date">${m.state === 'upcoming' ? 'Expected ' : ''}${m.date}</div>` : ''}
-        ${m.note ? `<div class="step-note">${m.note}</div>` : ''}
+        <div class="step-label">${esc(labelFor(m))}</div>
+        ${m.date ? `<div class="step-date">${m.state === 'upcoming' ? 'Expected ' : ''}${esc(m.date)}</div>` : ''}
+        ${m.note ? `<div class="step-note">${esc(m.note)}</div>` : ''}
       </div>
     </li>`).join('') + '</ol>';
 }
@@ -26,7 +30,7 @@ function docsHTML(documents) {
       <p class="fineprint" style="margin-top:10px;">(Demo: this just reveals the list — the live version emails/texts a PIN first.)</p>
     </div>
     <ul class="docs is-hidden" id="docs-list">${documents.map(d => `
-      <li class="doc"><span>${d.name}<small>${d.type}</small></span><button class="btn btn-ghost btn-sm" type="button">Download</button></li>`).join('')}
+      <li class="doc"><span>${esc(d.name)}<small>${esc(d.type)}</small></span><button class="btn btn-ghost btn-sm" type="button">Download</button></li>`).join('')}
     </ul>`;
 }
 
@@ -34,14 +38,14 @@ function render(m) {
   const current = m.milestones.find(x => x.state === 'current');
   $('#matter').innerHTML = `
     <div class="matter-head">
-      <div class="matter-ref">${m.reference}</div>
-      <h1 class="matter-prop">${m.property}</h1>
-      <div class="matter-meta">${m.buyerName} · ${money(m.price)} · Conveyancer: ${m.conveyancer}</div>
+      <div class="matter-ref">${esc(m.reference)}</div>
+      <h1 class="matter-prop">${esc(m.property)}</h1>
+      <div class="matter-meta">${esc(m.buyerName)} · ${money(m.price)} · Conveyancer: ${esc(m.conveyancer)}</div>
     </div>
     <div class="banner">
       <div class="banner-label">Where we are now</div>
-      <div class="banner-step">${current ? labelFor(current) : 'Registered 🎉'}</div>
-      <p class="banner-note">${m.currentNote || ''}</p>
+      <div class="banner-step">${current ? esc(labelFor(current)) : 'Registered 🎉'}</div>
+      <p class="banner-note">${esc(m.currentNote || '')}</p>
     </div>
     <h2 class="sec">Progress</h2>
     ${stepperHTML(m.milestones)}
@@ -70,6 +74,13 @@ async function go() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Logo fallback without an inline onerror handler (keeps the CSP strict).
+  const lg = document.querySelector('.appbar-logo');
+  if (lg) {
+    const onErr = () => { lg.style.display = 'none'; };
+    lg.addEventListener('error', onErr);
+    if (lg.complete && lg.naturalWidth === 0) onErr();
+  }
   $('#portal-form').addEventListener('submit', (e) => { e.preventDefault(); go(); });
   $('#year').textContent = new Date().getFullYear();
   const hint = $('#demo-hint');

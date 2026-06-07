@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>HSG Property</title>
 
+  <!-- Security -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.web3forms.com; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; form-action 'self'">
+
   <!-- PWA / theme -->
   <meta name="theme-color" content="#121212">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -27,8 +30,7 @@
     <!-- ============ APP BAR ============ -->
     <header class="appbar">
       <div class="appbar-inner">
-        <img class="appbar-logo" src="assets/hsg-logo.png" alt="HSG Attorneys"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <img class="appbar-logo" src="assets/hsg-logo.png" alt="HSG Attorneys">
         <span class="appbar-logo-fallback" aria-hidden="true">
           <span class="lf-1">HSG</span><br><span class="lf-2">Property</span>
         </span>

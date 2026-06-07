@@ -21,6 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Accept JSON body (the app sends JSON) or a normal form POST.
 $raw  = file_get_contents('php://input');
+if (strlen($raw) > 20000) {
+    http_response_code(413);
+    echo json_encode(['success' => false, 'error' => 'Payload too large']);
+    exit;
+}
 $data = json_decode($raw, true);
 if (!is_array($data)) { $data = $_POST; }
 
@@ -28,10 +33,10 @@ if (!is_array($data)) { $data = $_POST; }
 if (!empty($data['company'])) { echo json_encode(['success' => true]); exit; }
 
 $clean = function ($s) { return trim(str_replace(["\r", "\n"], ' ', (string)$s)); };
-$name     = $clean($data['name']  ?? '');
-$phone    = $clean($data['phone'] ?? '');
-$email    = $clean($data['email'] ?? '');
-$scenario = trim((string)($data['scenario'] ?? ''));
+$name     = mb_substr($clean($data['name']  ?? ''), 0, 100);
+$phone    = mb_substr($clean($data['phone'] ?? ''), 0, 40);
+$email    = mb_substr($clean($data['email'] ?? ''), 0, 120);
+$scenario = mb_substr(trim((string)($data['scenario'] ?? '')), 0, 4000);
 
 if ($name === '' || $phone === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(422);

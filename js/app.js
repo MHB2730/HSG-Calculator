@@ -397,6 +397,13 @@ function registerSW() {
 /* ---------- Boot ---------- */
 function init() {
   fillSite();
+  // Logo fallback without an inline onerror handler (keeps the CSP script-src strict).
+  const lg = document.querySelector('.appbar-logo');
+  if (lg) {
+    const onErr = () => { lg.style.display = 'none'; const fb = lg.nextElementSibling; if (fb) fb.style.display = 'block'; };
+    lg.addEventListener('error', onErr);
+    if (lg.complete && lg.naturalWidth === 0) onErr();
+  }
   initTheme();
   initInstall();
 

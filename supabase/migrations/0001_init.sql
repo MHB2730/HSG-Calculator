@@ -98,6 +98,11 @@ returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 declare m public.matters%rowtype; result jsonb;
 begin
+  -- Enumeration guard: ignore too-short inputs and return nothing silently.
+  -- (For hard protection, put edge rate-limiting / a CAPTCHA in front of this RPC.)
+  if length(trim(coalesce(p_reference, ''))) < 6 or length(trim(coalesce(p_surname, ''))) < 2 then
+    return null;
+  end if;
   select * into m from public.matters
    where lower(reference)     = lower(trim(p_reference))
      and lower(buyer_surname) = lower(trim(p_surname))
