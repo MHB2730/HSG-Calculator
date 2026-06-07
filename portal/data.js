@@ -106,7 +106,79 @@ export async function lookupMatter(reference, surname) {
 }
 export const DEMO_HINT = () => getStore().map(m => `${m.reference} / ${m.buyerSurname}`);
 
-// ---- admin side ----
+// ---- admin side: LIVE (Supabase) ----
+// Used by the staff admin once signed in. Maps between the app's camelCase shape
+// and the Postgres columns. Falls back to nothing — the admin requires a login,
+// so `sb` is always present here.
+const isISODate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || '').trim());
+
+function rowToMatter(row) {
+  const byKey = Object.fromEntries((row.milestones || []).map((m) => [m.stage_key, m]));
+  return {
+    reference: row.reference, buyerName: row.buyer_name || '', buyerSurname: row.buyer_surname || '',
+    property: row.property || '', price: row.price || 0, conveyancer: row.conveyancer || '',
+    agentName: '', currentNote: row.current_note || '', status: row.status || 'active',
+    milestones: STAGES.map((st) => {
+      const m = byKey[st.key] || {};
+      return { key: st.key, label: st.label, state: m.state || 'upcoming',
+        date: m.date_done || m.expected_date || '', note: m.note || '' };
+    }),
+    documents: [],
+  };
+}
+
+export async function listMattersRemote() {
+  const { data, error } = await sb.from('matters')
+    .select('reference,property,buyer_name,buyer_surname,status,milestones(stage_key,state,ord)')
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map((row) => {
+    const cur = (row.milestones || []).find((x) => x.state === 'current');
+    return { reference: row.reference, property: row.property, buyerName: row.buyer_name,
+      buyerSurname: row.buyer_surname, current: cur ? cur.stage_key : 'registered',
+      status: row.status || 'active' };
+  });
+}
+
+export async function getMatterRemote(reference) {
+  const { data, error } = await sb.from('matters')
+    .select('*, milestones(*)').eq('reference', reference).maybeSingle();
+  if (error) throw error;
+  return data ? rowToMatter(data) : null;
+}
+
+export async function upsertMatterRemote(matter) {
+  const mRow = {
+    reference: matter.reference, buyer_name: matter.buyerName || null,
+    buyer_surname: matter.buyerSurname, property: matter.property || null,
+    price: matter.price || null, conveyancer: matter.conveyancer || null,
+    current_note: matter.currentNote || null, status: matter.status || 'active',
+  };
+  const { data: saved, error: e1 } = await sb.from('matters')
+    .upsert(mRow, { onConflict: 'reference' }).select('id').single();
+  if (e1) throw e1;
+  const rows = STAGES.map((st, i) => {
+    const ms = (matter.milestones || []).find((x) => x.key === st.key) || {};
+    const dv = String(ms.date || '').trim();
+    return { matter_id: saved.id, stage_key: st.key, ord: i, state: ms.state || 'upcoming',
+      date_done: isISODate(dv) ? dv : null, expected_date: isISODate(dv) ? null : (dv || null),
+      note: String(ms.note || '').trim() || null };
+  });
+  const { error: e2 } = await sb.from('milestones').upsert(rows, { onConflict: 'matter_id,stage_key' });
+  if (e2) throw e2;
+  return matter;
+}
+
+export async function nextReferenceRemote() {
+  const { data, error } = await sb.from('matters').select('reference');
+  const year = '2026';
+  if (error || !data) return `HSG-${year}-0001`;
+  const nums = data.map((m) => { const r = /HSG-\d{4}-(\d+)/.exec(m.reference || ''); return r ? parseInt(r[1], 10) : 0; });
+  const n = (Math.max(0, ...nums) + 1).toString().padStart(4, '0');
+  return `HSG-${year}-${n}`;
+}
+
+// ---- admin side: LOCAL demo (kept for reference / offline prototype) ----
 export function listMatters() {
   return getStore().map(m => ({
     reference: m.reference, property: m.property, buyerName: m.buyerName, buyerSurname: m.buyerSurname,

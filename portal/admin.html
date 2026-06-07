@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>HSG Property — Staff Admin</title>
   <meta name="theme-color" content="#121212">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.web3forms.com; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://gdbdcyqafhobzboumyrf.supabase.co; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; form-action 'self'">
   <link rel="icon" href="../icons/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,19 +22,39 @@
         <div class="appbar-titles"><span class="appbar-sub">Staff admin</span></div>
         <span class="appbar-spacer"></span>
         <a class="btn btn-ghost btn-sm" href="index.html">Client view</a>
+        <button class="btn btn-ghost btn-sm is-hidden" id="sign-out" type="button">Sign out</button>
       </div>
     </header>
 
     <main class="admin-main">
-      <section id="admin-list">
+      <!-- Login gate (staff only) -->
+      <section id="admin-login">
+        <div class="lookup-card">
+          <h1>Staff sign in</h1>
+          <p class="sub">HSG staff only. Use your firm email and password.</p>
+          <form id="login-form" novalidate>
+            <label class="field">
+              <span class="field-label">Email</span>
+              <div class="input-plain"><input id="lg-email" type="email" autocomplete="username" placeholder="you@hsgattorneys.co.za"></div>
+            </label>
+            <label class="field">
+              <span class="field-label">Password</span>
+              <div class="input-plain"><input id="lg-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+            </label>
+            <button class="btn btn-primary btn-block" id="lg-go" type="submit">Sign in</button>
+          </form>
+          <div class="error is-hidden" id="lg-error"></div>
+        </div>
+      </section>
+
+      <section id="admin-list" class="is-hidden">
         <div class="admin-bar">
           <h1>Matters</h1>
           <div style="display:flex; gap:8px;">
-            <button class="btn btn-ghost btn-sm" id="reset-demo" type="button">Reset demo</button>
             <button class="btn btn-primary btn-sm" id="new-matter" type="button">+ New matter</button>
           </div>
         </div>
-        <p class="admin-note">Prototype — no login yet. Changes are saved in this browser and shown to clients via the tracker.</p>
+        <p class="admin-note">Live — changes save to the firm database and appear instantly in the client tracker.</p>
         <ul class="matter-list"></ul>
       </section>
 
@@ -48,6 +68,7 @@
     </footer>
   </div>
 
+  <script src="../js/lib/supabase.js"></script>
   <script type="module" src="admin.js"></script>
 </body>
 </html>
