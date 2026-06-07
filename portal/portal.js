@@ -73,5 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#portal-form').addEventListener('submit', (e) => { e.preventDefault(); go(); });
   $('#year').textContent = new Date().getFullYear();
   const hint = $('#demo-hint');
-  if (hint) hint.textContent = 'Demo logins to try — ' + DEMO_HINT.join('   ·   ');
+  if (hint) hint.textContent = 'Demo logins to try — ' + DEMO_HINT().join('   ·   ');
+  // Allow the admin's "view as client" link to prefill + auto-open a matter.
+  const p = new URLSearchParams(location.search);
+  const qref = p.get('ref'), qsn = p.get('surname');
+  if (qref && qsn) { $('#lk-reference').value = qref; $('#lk-surname').value = qsn; go(); }
 });

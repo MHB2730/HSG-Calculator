@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>HSG Property — Staff Admin</title>
+  <meta name="theme-color" content="#121212">
+  <link rel="icon" href="../icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Slab:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="portal.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="app">
+    <header class="appbar">
+      <div class="appbar-inner">
+        <img class="appbar-logo" src="../assets/hsg-logo.png" alt="HSG Attorneys" onerror="this.style.display='none'">
+        <div class="appbar-titles"><span class="appbar-sub">Staff admin</span></div>
+        <span class="appbar-spacer"></span>
+        <a class="btn btn-ghost btn-sm" href="index.html">Client view</a>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section id="admin-list">
+        <div class="admin-bar">
+          <h1>Matters</h1>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-ghost btn-sm" id="reset-demo" type="button">Reset demo</button>
+            <button class="btn btn-primary btn-sm" id="new-matter" type="button">+ New matter</button>
+          </div>
+        </div>
+        <p class="admin-note">Prototype — no login yet. Changes are saved in this browser and shown to clients via the tracker.</p>
+        <ul class="matter-list"></ul>
+      </section>
+
+      <section id="admin-editor" class="is-hidden"></section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <p class="copyright">© <span id="year"></span> HSG Attorneys <span class="division">Staff admin (prototype)</span></p>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

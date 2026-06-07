@@ -1,0 +1,31 @@
+/* admin.css — staff admin (prototype). Loads after css/styles.css + portal.css. */
+.admin-main { max-width: 760px; margin: 0 auto; padding: 16px 12px 40px; flex: 1; width: 100%; }
+.admin-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+.admin-bar h1 { font-size: 1.35rem; margin: 0; }
+.admin-note { font-size: .78rem; color: var(--muted); margin: 0 2px 14px; }
+
+.matter-list { list-style: none; margin: 0; padding: 0; }
+.matter-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; width: 100%; font: inherit; text-align: left; color: inherit; }
+.matter-row:hover { border-color: var(--ink-chrome); }
+.mr-prop { font-weight: 600; }
+.mr-sub { color: var(--muted); font-size: .8rem; margin-top: 2px; }
+.mr-badge { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; background: var(--brand-50); color: var(--ink); padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+
+.editor select, .editor textarea, .editor input[type="text"] { width: 100%; font: inherit; font-size: 1rem; color: var(--ink); padding: 11px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
+.editor select:focus, .editor textarea:focus, .editor input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--focus); outline: none; }
+.editor textarea { min-height: 60px; resize: vertical; }
+.editor .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.editor .full { grid-column: 1 / -1; }
+
+.ms-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.ms-row { padding: 12px 0; border-bottom: 1px dashed var(--line); }
+.ms-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ms-label { font-weight: 600; }
+.ms-head select { width: auto; min-width: 120px; }
+.ms-grid { display: grid; grid-template-columns: 150px 1fr; gap: 8px; margin-top: 8px; }
+.editor-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+@media (max-width: 520px) {
+  .editor .grid2 { grid-template-columns: 1fr; }
+  .ms-grid { grid-template-columns: 1fr; }
+}
