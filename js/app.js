@@ -270,44 +270,58 @@ function activeCardData() {
   };
 }
 
+let _shareBlob = null, _shareText = "";
+
 async function shareActive() {
-  const text = scenarioText();
   const card = activeCardData();
-  // Prefer sharing a BRANDED IMAGE (logo + figures) where the device supports it.
-  if (card && navigator.canShare) {
-    try {
-      const blob = await buildShareCard(card, SITE);
-      const file = new File([blob], "hsg-estimate.png", { type: "image/png" });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: SITE.firmName + " estimate", text });
-        return;
-      }
-    } catch (e) { if (e && e.name === "AbortError") return; }
+  if (!card) { toast("Enter an amount first"); return; }
+  _shareText = scenarioText();
+  try { _shareBlob = await buildShareCard(card, SITE); } catch { _shareBlob = null; }
+
+  // Native file share (mobile): the branded IMAGE goes straight to WhatsApp / email / save.
+  if (_shareBlob && navigator.canShare) {
+    const file = new File([_shareBlob], "hsg-estimate.png", { type: "image/png" });
+    if (navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: SITE.firmName + " estimate", text: _shareText }); return; }
+      catch (e) { if (e && e.name === "AbortError") return; }
+    }
   }
-  // Fallback sheet: WhatsApp / Email / Copy / Save image.
+  // Desktop fallback sheet — every option shares the image.
   openModal("share-sheet");
 }
 
-async function saveShareImage() {
-  const card = activeCardData();
-  if (!card) { toast("Enter an amount first"); return; }
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function copyImage(blob) {
   try {
-    const blob = await buildShareCard(card, SITE);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "hsg-estimate.png";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-    toast("Image saved — attach it to your message");
-  } catch { toast("Could not create the image"); }
+    if (blob && navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([new window.ClipboardItem({ "image/png": blob })]);
+      return true;
+    }
+  } catch { /* fall through */ }
+  return false;
 }
 
-function doShare(method) {
-  const text = scenarioText();
-  if (method === "whatsapp") window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
-  else if (method === "email") window.location.href = "mailto:?subject=" + encodeURIComponent(SITE.firmName + " property estimate") + "&body=" + encodeURIComponent(text);
-  else if (method === "copy") navigator.clipboard?.writeText(text).then(() => toast("Estimate copied to clipboard"), () => toast("Could not copy"));
-  else if (method === "image") { saveShareImage(); return; }
+async function doShare(method) {
+  const blob = _shareBlob, text = _shareText;
+  if (method === "download") {
+    if (blob) { downloadBlob(blob, "hsg-estimate.png"); toast("Image saved"); }
+  } else if (method === "whatsapp") {
+    const copied = await copyImage(blob);
+    window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+    if (copied) toast("Image copied — paste it into the chat");
+    else if (blob) { downloadBlob(blob, "hsg-estimate.png"); toast("Image saved — attach it in WhatsApp"); }
+  } else if (method === "email") {
+    const copied = await copyImage(blob);
+    window.location.href = "mailto:?subject=" + encodeURIComponent(SITE.firmName + " property estimate") + "&body=" + encodeURIComponent(text);
+    if (copied) toast("Image copied — paste it into your email");
+    else if (blob) { downloadBlob(blob, "hsg-estimate.png"); toast("Image saved — attach it to your email"); }
+  }
   closeModal("share-sheet");
 }
 
@@ -513,8 +527,7 @@ function init() {
 
   $("#share-whatsapp")?.addEventListener("click", () => doShare("whatsapp"));
   $("#share-email")?.addEventListener("click", () => doShare("email"));
-  $("#share-copy")?.addEventListener("click", () => doShare("copy"));
-  $("#share-image")?.addEventListener("click", () => doShare("image"));
+  $("#share-download")?.addEventListener("click", () => doShare("download"));
   $("#contact-phone")?.addEventListener("click", (e) => { e.preventDefault(); openCallSheet(); });
 
   const form = $("#lead-form");

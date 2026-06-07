@@ -75,6 +75,25 @@ export async function buildShareCard(card, site) {
   ctx.textAlign = 'center';
   ctx.fillText('Property estimate', W / 2, headerH - 36);
 
+  // Faint GeoAfrika emblem watermark for texture (drawn behind the content).
+  try {
+    const emblem = await loadImg('assets/brand/emblem-mask.png');
+    const ew = 1020, eh = (emblem.height / emblem.width) * ew;
+    // The PNG is a MASK (shape in the alpha channel), so tint it to a grey via
+    // source-in compositing — works whether the mask's pixels are black or white.
+    const off = document.createElement('canvas');
+    off.width = Math.ceil(ew); off.height = Math.ceil(eh);
+    const octx = off.getContext('2d');
+    octx.drawImage(emblem, 0, 0, ew, eh);
+    octx.globalCompositeOperation = 'source-in';
+    octx.fillStyle = '#111315';
+    octx.fillRect(0, 0, ew, eh);
+    ctx.save();
+    ctx.globalAlpha = 0.055;
+    ctx.drawImage(off, (W - ew) / 2, headerH + (H - headerH - eh) / 2);
+    ctx.restore();
+  } catch { /* watermark optional */ }
+
   // title
   let y = bodyTop + 30;
   ctx.textAlign = 'left';
