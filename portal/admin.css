@@ -4,6 +4,12 @@
 .admin-bar h1 { font-size: 1.35rem; margin: 0; }
 .admin-note { font-size: .78rem; color: var(--muted); margin: 0 2px 14px; }
 
+/* 2FA setup */
+.mfa-qr-wrap { display: flex; justify-content: center; padding: 14px; background: #fff; border-radius: var(--radius-sm); margin: 4px 0 12px; }
+.mfa-qr-wrap img { width: 184px; height: 184px; display: block; }
+.mfa-secret-label { font-size: .78rem; color: var(--muted); margin: 0 0 4px; }
+.mfa-secret { display: block; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: .95rem; letter-spacing: .12em; word-break: break-all; background: var(--brand-50); color: var(--ink); padding: 10px 12px; border-radius: var(--radius-sm); margin: 0 0 14px; }
+
 .matter-list { list-style: none; margin: 0; padding: 0; }
 .matter-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; width: 100%; font: inherit; text-align: left; color: inherit; }
 .matter-row:hover { border-color: var(--ink-chrome); }

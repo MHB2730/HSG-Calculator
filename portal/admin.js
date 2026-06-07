@@ -1,12 +1,18 @@
 /* admin.js — HSG staff admin (LIVE): sign in, create matters, set milestones.
    Reads/writes the live Supabase tables; changes appear instantly to clients. */
 import { STAGES, CONVEYANCERS, listMattersRemote, getMatterRemote, upsertMatterRemote, newMatterTemplate, nextReferenceRemote } from './data.js';
-import { hasAuth, getUser, signIn, signOut, isStaff } from './auth.js';
+import { hasAuth, getUser, signIn, signOut, isStaff, getAAL, unenrollUnverified, enrollTotp, verifyTotp, challengeExisting } from './auth.js';
 
 const $ = (s, r = document) => r.querySelector(s);
-const loginEl = () => $('#admin-login');
 const listEl = () => $('#admin-list');
 const edEl = () => $('#admin-editor');
+
+// Every full-screen section; show() reveals exactly one.
+const SECTIONS = {
+  login: '#admin-login', enroll: '#admin-mfa-enroll', verify: '#admin-mfa-verify',
+  list: '#admin-list', editor: '#admin-editor',
+};
+let enrollFactorId = null;
 const stageLabel = (key) => (STAGES.find((s) => s.key === key) || { label: 'Registered' }).label;
 // Full HTML escape (covers text content AND quoted attribute values).
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
@@ -23,9 +29,9 @@ function toast(msg) {
 
 // ---------- view switching ----------
 function show(which) {
-  loginEl().classList.toggle('is-hidden', which !== 'login');
-  listEl().classList.toggle('is-hidden', which !== 'list');
-  edEl().classList.toggle('is-hidden', which !== 'editor');
+  for (const [k, sel] of Object.entries(SECTIONS)) {
+    const el = $(sel); if (el) el.classList.toggle('is-hidden', k !== which);
+  }
   const so = $('#sign-out'); if (so) so.classList.toggle('is-hidden', which === 'login');
   window.scrollTo(0, 0);
 }
@@ -41,6 +47,65 @@ async function refreshAuthUI() {
     show('login');
     return;
   }
+  await routeMfa();
+}
+
+// Decide where a signed-in staff member goes based on their 2FA state.
+async function routeMfa() {
+  const aal = await getAAL();
+  if (aal.currentLevel === 'aal2') { await showList(); return; }   // already 2FA-verified this session
+  if (aal.nextLevel === 'aal2') { showVerify(); return; }          // has 2FA set up → enter a code
+  await showEnroll();                                              // no 2FA yet → must set it up (required)
+}
+
+// ---------- 2FA: first-time setup ----------
+async function showEnroll() {
+  show('enroll');
+  const qr = $('#mfa-qr'); const secret = $('#mfa-secret'); const err = $('#mfa-enroll-error');
+  err.classList.add('is-hidden'); qr.removeAttribute('src'); secret.textContent = 'Generating…';
+  enrollFactorId = null;
+  await unenrollUnverified();
+  const res = await enrollTotp();
+  if (res.error) {
+    secret.textContent = '';
+    err.textContent = 'Could not start 2FA setup. Please sign out and try again.';
+    err.classList.remove('is-hidden');
+    return;
+  }
+  enrollFactorId = res.factorId;
+  qr.setAttribute('src', res.qr);
+  secret.textContent = res.secret;
+}
+
+async function doEnrollVerify() {
+  const err = $('#mfa-enroll-error'); err.classList.add('is-hidden');
+  if (!enrollFactorId) { await showEnroll(); return; }
+  const code = $('#mfa-enroll-code').value;
+  if (!/^\d{6}$/.test(String(code).trim())) { err.textContent = 'Enter the 6-digit code from your app.'; err.classList.remove('is-hidden'); return; }
+  const btn = $('#mfa-enroll-go'); btn.disabled = true; btn.textContent = 'Verifying…';
+  const { error } = await verifyTotp(enrollFactorId, code);
+  btn.disabled = false; btn.textContent = 'Verify & finish';
+  if (error) { err.textContent = 'That code didn’t match. Check the app and try the current 6 digits.'; err.classList.remove('is-hidden'); return; }
+  $('#mfa-enroll-code').value = '';
+  await showList();
+}
+
+// ---------- 2FA: returning login ----------
+function showVerify() {
+  show('verify');
+  $('#mfa-verify-error').classList.add('is-hidden');
+  $('#mfa-verify-code').value = '';
+}
+
+async function doVerify(ev) {
+  if (ev) ev.preventDefault();
+  const err = $('#mfa-verify-error'); err.classList.add('is-hidden');
+  const code = $('#mfa-verify-code').value;
+  if (!/^\d{6}$/.test(String(code).trim())) { err.textContent = 'Enter the 6-digit code from your app.'; err.classList.remove('is-hidden'); return; }
+  const btn = $('#mfa-verify-go'); btn.disabled = true; btn.textContent = 'Verifying…';
+  const { error } = await challengeExisting(code);
+  btn.disabled = false; btn.textContent = 'Verify';
+  if (error) { err.textContent = 'That code didn’t match. Try the current 6 digits from your app.'; err.classList.remove('is-hidden'); return; }
   await showList();
 }
 
@@ -186,7 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const y = $('#year'); if (y) y.textContent = new Date().getFullYear();
 
   $('#login-form').addEventListener('submit', doLogin);
-  $('#sign-out').onclick = async () => { await signOut(); showLoginError(''); show('login'); };
+  $('#mfa-enroll-go').onclick = doEnrollVerify;
+  $('#mfa-verify-form').addEventListener('submit', doVerify);
+  $('#sign-out').onclick = async () => { await signOut(); enrollFactorId = null; showLoginError(''); show('login'); };
   $('#new-matter').onclick = async () => { const t = newMatterTemplate(); t.reference = await nextReferenceRemote(); showEditor(t); };
   listEl().addEventListener('click', async (e) => {
     const row = e.target.closest('.matter-row');
