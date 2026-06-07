@@ -1,6 +1,6 @@
 /* sw.js — service worker for offline use.
    Bump CACHE when you change files so phones pick up the new version. */
-const CACHE = 'hsg-property-v4';
+const CACHE = 'hsg-property-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -35,12 +35,27 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  // Page navigations: network-first, fall back to the cached shell offline.
-  if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).catch(() => caches.match('./index.html')));
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
+
+  if (sameOrigin) {
+    // NETWORK-FIRST for our own HTML/CSS/JS so updated code AND fee tables always
+    // reach users when online; fall back to the cache when offline.
+    e.respondWith(
+      fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        return res;
+      }).catch(() =>
+        caches.match(req).then((hit) =>
+          hit || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error())
+        )
+      )
+    );
     return;
   }
-  // Everything else: cache-first, then network (and cache a copy).
+
+  // Cross-origin (e.g. Google Fonts): cache-first.
   e.respondWith(
     caches.match(req).then((hit) =>
       hit || fetch(req).then((res) => {

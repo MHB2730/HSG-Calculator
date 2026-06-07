@@ -22,6 +22,9 @@ export const STAGES = [
   { key: 'registered', label: 'Registered' },
 ];
 
+// The firm's conveyancers — used in the staff-admin dropdown + the demo seed.
+export const CONVEYANCERS = ['Karl Hoffman', 'Tess Coetzee', 'Warda Jones'];
+
 const KEY = 'hsg-portal-demo';
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
@@ -38,7 +41,7 @@ function buildMilestones(currentIdx, dates = {}, notes = {}) {
 const SEED = [
   {
     reference: 'HSG-2026-0042', buyerSurname: 'Naidoo', buyerName: 'A. Naidoo',
-    property: '12 Oak Avenue, Ballito', price: 2450000, conveyancer: 'M. Hornby',
+    property: '12 Oak Avenue, Ballito', price: 2450000, conveyancer: 'Karl Hoffman',
     agentName: 'Lerato — Seeff Ballito', status: 'active',
     currentNote: 'We are awaiting the rates clearance figures from the municipality — expected by ~14 June.',
     milestones: buildMilestones(4,
@@ -53,7 +56,7 @@ const SEED = [
   },
   {
     reference: 'HSG-2026-0108', buyerSurname: 'Botha', buyerName: 'J & R Botha',
-    property: 'Unit 4, The Vines, Stellenbosch', price: 1875000, conveyancer: 'S. Glavovic',
+    property: 'Unit 4, The Vines, Stellenbosch', price: 1875000, conveyancer: 'Tess Coetzee',
     agentName: 'Pieter — Pam Golding', status: 'active',
     currentNote: 'Lodged at the Deeds Office — registration usually follows within 7–10 working days.',
     milestones: buildMilestones(7,
@@ -61,6 +64,16 @@ const SEED = [
         clearance: '2026-05-12', signed: '2026-05-20', duty: '2026-05-26', lodged: '2026-06-03', registered: '~13 Jun' },
       { lodged: 'Lodged 3 June — in the Deeds Office examination queue.' }),
     documents: [{ id: 'd3', name: 'Guarantees (bank).pdf', type: 'Bond' }],
+  },
+  {
+    reference: 'HSG-2026-0151', buyerSurname: 'Khumalo', buyerName: 'S. Khumalo',
+    property: '8 Marine Drive, Umhlanga', price: 3200000, conveyancer: 'Warda Jones',
+    agentName: 'Thabo — RE/MAX', status: 'active',
+    currentNote: 'Your offer is accepted — we are being appointed as the transferring attorneys and will contact you shortly.',
+    milestones: buildMilestones(1,
+      { offer: '2026-06-01', appointed: '~9 Jun', bond: '~20 Jun', fica: '~27 Jun', clearance: '~10 Jul', signed: '~17 Jul', duty: '~21 Jul', lodged: '~28 Jul', registered: '~7 Aug' },
+      { offer: 'Offer to Purchase accepted by the seller.' }),
+    documents: [],
   },
 ];
 

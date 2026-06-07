@@ -6,6 +6,7 @@
 import {
   transferCostBreakdown, bondCostBreakdown, bondRepayment, affordability,
 } from './tariffs.js';
+import { buildShareCard } from './sharecard.js';
 
 /* ---------- Site settings (edit me — no coding needed) ---------- */
 const SITE = {
@@ -13,7 +14,11 @@ const SITE = {
   firmName: "HSG Attorneys",
   tagline: "Property cost & bond toolkit",
   disclaimer: "These calculators provide estimates for guidance only and do not constitute a formal quotation or legal advice. Figures are based on current published tariffs and may change — contact HSG Attorneys for a formal quote.",
-  phone: "+27 21 271 0900",               // shown on the "Call HSG" button (empty hides it)
+  // HSG offices — the "Call HSG" button offers these and best-effort highlights the nearest.
+  offices: [
+    { city: "Durban", region: "KwaZulu-Natal", phone: "+27 31 266 7751" },
+    { city: "Cape Town", region: "Western Cape", phone: "+27 21 271 0900" },
+  ],
   email: "legal@hsginc.co.za",            // lead destination + mailto fallback address
   website: "https://hsgattorneys.co.za",
   // How quote requests reach the firm:
@@ -241,20 +246,97 @@ function toast(msg) {
 }
 
 /* ---------- Share ---------- */
+// Structured data for the branded share IMAGE.
+function activeCardData() {
+  const data = recompute(activeTab);
+  if (!data) return null;
+  const titles = {
+    transfer: "Transfer cost estimate", bond: "Bond registration cost estimate",
+    repayment: "Bond repayment estimate", afford: "Affordability estimate",
+  };
+  if (CALC[activeTab].kind === "breakdown") {
+    return {
+      title: titles[activeTab],
+      lines: data.rows.map(([l, , a]) => ({ label: l, value: groupR(a) })),
+      total: { label: data.totalLabel, value: groupR(data.total) },
+      grand: { label: data.grandLabel, value: groupR(data.grand) },
+    };
+  }
+  return {
+    title: titles[activeTab],
+    headline: { label: data.headlineLabel, value: data.headlineValue + (data.per || "") },
+    lines: data.rows.map(([l, , a]) => ({ label: l, value: a })),
+    total: { label: data.totalRow[0], value: data.totalRow[1] },
+  };
+}
+
 async function shareActive() {
   const text = scenarioText();
-  if (navigator.share) {
-    try { await navigator.share({ title: SITE.firmName + " estimate", text }); return; }
-    catch (e) { if (e && e.name === "AbortError") return; }
+  const card = activeCardData();
+  // Prefer sharing a BRANDED IMAGE (logo + figures) where the device supports it.
+  if (card && navigator.canShare) {
+    try {
+      const blob = await buildShareCard(card, SITE);
+      const file = new File([blob], "hsg-estimate.png", { type: "image/png" });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: SITE.firmName + " estimate", text });
+        return;
+      }
+    } catch (e) { if (e && e.name === "AbortError") return; }
   }
+  // Fallback sheet: WhatsApp / Email / Copy / Save image.
   openModal("share-sheet");
 }
+
+async function saveShareImage() {
+  const card = activeCardData();
+  if (!card) { toast("Enter an amount first"); return; }
+  try {
+    const blob = await buildShareCard(card, SITE);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "hsg-estimate.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast("Image saved — attach it to your message");
+  } catch { toast("Could not create the image"); }
+}
+
 function doShare(method) {
   const text = scenarioText();
   if (method === "whatsapp") window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
   else if (method === "email") window.location.href = "mailto:?subject=" + encodeURIComponent(SITE.firmName + " property estimate") + "&body=" + encodeURIComponent(text);
   else if (method === "copy") navigator.clipboard?.writeText(text).then(() => toast("Estimate copied to clipboard"), () => toast("Could not copy"));
+  else if (method === "image") { saveShareImage(); return; }
   closeModal("share-sheet");
+}
+
+/* ---------- Call HSG (regional) ---------- */
+function openCallSheet() {
+  openModal("call-sheet");
+  detectRegion().then(markNearOffice).catch(() => {});
+}
+let _region, _regionTried = false;
+async function detectRegion() {
+  if (_regionTried) return _region;
+  _regionTried = true;
+  try {
+    const res = await fetch("https://ipapi.co/json/", { cache: "no-store" });
+    const d = await res.json();
+    _region = d && d.region ? String(d.region) : null;
+  } catch { _region = null; }
+  return _region;
+}
+function markNearOffice(region) {
+  const r = (region || "").toLowerCase();
+  let nearCity = null;
+  if (r.includes("kwazulu") || r.includes("natal")) nearCity = "Durban";
+  else if (r.includes("western cape") || r.includes("wes-kaap") || r.includes("cape town")) nearCity = "Cape Town";
+  SITE.offices.forEach((o, i) => {
+    const el = document.getElementById("call-office-" + i);
+    const tag = el && el.querySelector(".near-tag");
+    if (tag) tag.hidden = !(nearCity === o.city);
+  });
 }
 
 /* ---------- Lead / quote ---------- */
@@ -378,13 +460,16 @@ function initInstall() {
 function fillSite() {
   $$("[data-site]").forEach(el => { if (SITE[el.dataset.site] != null) el.textContent = SITE[el.dataset.site]; });
   $("#year").textContent = new Date().getFullYear();
-  const phone = $("#contact-phone");
-  if (phone) {
-    if (SITE.phone) { phone.href = "tel:" + SITE.phone.replace(/\s/g, ""); phone.classList.remove("is-hidden"); }
-    else phone.classList.add("is-hidden");
-  }
   const web = $("#contact-web");
   if (web) web.href = SITE.website;
+  // Build the Call-HSG office list (config data — safe to inject).
+  const list = $("#call-list");
+  if (list) {
+    list.innerHTML = SITE.offices.map((o, i) => `
+      <a class="btn btn-ghost btn-block call-office" id="call-office-${i}" href="tel:${o.phone.replace(/\s/g, "")}">
+        <strong>${o.city}</strong> · ${o.phone}<span class="near-tag" hidden> — nearest to you</span>
+      </a>`).join("");
+  }
 }
 
 /* ---------- Service worker (offline) ---------- */
@@ -429,6 +514,8 @@ function init() {
   $("#share-whatsapp")?.addEventListener("click", () => doShare("whatsapp"));
   $("#share-email")?.addEventListener("click", () => doShare("email"));
   $("#share-copy")?.addEventListener("click", () => doShare("copy"));
+  $("#share-image")?.addEventListener("click", () => doShare("image"));
+  $("#contact-phone")?.addEventListener("click", (e) => { e.preventDefault(); openCallSheet(); });
 
   const form = $("#lead-form");
   form?.addEventListener("submit", async e => {

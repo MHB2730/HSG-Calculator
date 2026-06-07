@@ -1,5 +1,5 @@
 /* admin.js — staff admin (prototype): create matters + set milestones. */
-import { STAGES, listMatters, getMatter, upsertMatter, newMatterTemplate, nextReference, resetStore } from './data.js';
+import { STAGES, CONVEYANCERS, listMatters, getMatter, upsertMatter, newMatterTemplate, nextReference, resetStore } from './data.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const listEl = () => $('#admin-list');
@@ -46,7 +46,12 @@ function showEditor(matter) {
         <label class="field"><span class="field-label">Buyer surname</span><input type="text" id="f-surname" value="${esc(m.buyerSurname)}"></label>
         <label class="field full"><span class="field-label">Property</span><input type="text" id="f-property" value="${esc(m.property)}"></label>
         <label class="field"><span class="field-label">Price (R)</span><input type="text" id="f-price" value="${esc(m.price || '')}"></label>
-        <label class="field"><span class="field-label">Conveyancer</span><input type="text" id="f-conv" value="${esc(m.conveyancer)}"></label>
+        <label class="field"><span class="field-label">Conveyancer</span>
+          <select id="f-conv">
+            <option value="">— select —</option>
+            ${CONVEYANCERS.map(c => `<option value="${esc(c)}" ${m.conveyancer === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+            ${(m.conveyancer && !CONVEYANCERS.includes(m.conveyancer)) ? `<option value="${esc(m.conveyancer)}" selected>${esc(m.conveyancer)}</option>` : ''}
+          </select></label>
         <label class="field full"><span class="field-label">"Where we are now" note (client banner)</span><textarea id="f-note">${esc(m.currentNote)}</textarea></label>
       </div>
 

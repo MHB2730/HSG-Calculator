@@ -6,7 +6,7 @@
   <title>HSG Property</title>
 
   <!-- Security -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.web3forms.com; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.web3forms.com https://ipapi.co; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; form-action 'self'">
 
   <!-- PWA / theme -->
   <meta name="theme-color" content="#121212">
@@ -289,6 +289,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
           Copy to clipboard
         </button>
+        <button class="btn btn-ghost btn-block" id="share-image" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          Save image (with logo)
+        </button>
       </div>
       <button class="btn-text btn-block" data-action="close-modal" data-target="share-sheet" type="button" style="margin-top:var(--space-3);">Cancel</button>
     </div>
@@ -338,6 +342,16 @@
         <strong>Thank you — your enquiry is on its way.</strong>
         <p style="color:var(--muted);font-size:var(--fs-sm);margin-top:4px;">An HSG consultant will be in touch shortly.</p>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ CALL HSG (regional) ============ -->
+  <div class="modal" id="call-sheet" role="dialog" aria-modal="true" aria-label="Call HSG">
+    <div class="sheet">
+      <div class="sheet-head"><h3>Call HSG Attorneys</h3></div>
+      <p class="sheet-summary">Tap your nearest office to call.</p>
+      <div class="sheet-options" id="call-list"></div>
+      <button class="btn-text btn-block" data-action="close-modal" data-target="call-sheet" type="button">Cancel</button>
     </div>
   </div>
 
