@@ -1,4 +1,10 @@
 /* portal.css — client portal (transfer tracker). Loads AFTER css/styles.css and reuses its tokens. */
+
+/* Appbar action links (Calculators / Client view): the app bar is ALWAYS dark,
+   so force white text in BOTH themes (otherwise light-mode text is near-black on near-black). */
+.appbar .btn-ghost { color: var(--on-chrome); border-color: rgba(255, 255, 255, .32); }
+.appbar .btn-ghost:hover { border-color: #fff; background: rgba(255, 255, 255, .08); }
+
 .portal-main { max-width: var(--maxw); margin: 0 auto; padding: 16px 12px 40px; flex: 1; }
 
 .lookup-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-1); padding: 18px 16px; }
