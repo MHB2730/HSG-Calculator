@@ -4,7 +4,7 @@
 // verified engine in tariffs.js (exact parity with the HSG website).
 // =====================================================================
 import {
-  transferCostBreakdown, bondCostBreakdown, bondRepayment, affordability, CONFIG,
+  transferCostBreakdown, bondCostBreakdown, bondRepayment, affordability,
 } from './tariffs.js';
 
 /* ---------- Site settings (edit me — no coding needed) ---------- */

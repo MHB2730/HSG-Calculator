@@ -4,7 +4,6 @@ import { STAGES, listMatters, getMatter, upsertMatter, newMatterTemplate, nextRe
 const $ = (s, r = document) => r.querySelector(s);
 const listEl = () => $('#admin-list');
 const edEl = () => $('#admin-editor');
-const money = n => 'R ' + Math.round(Number(n) || 0).toLocaleString('en-ZA');
 const stageLabel = key => (STAGES.find(s => s.key === key) || { label: 'Registered' }).label;
 const esc = s => String(s == null ? '' : s).replace(/"/g, '&quot;');
 
