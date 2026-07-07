@@ -1,0 +1,43 @@
+# Security headers for the cPanel (Apache) deployment of HSG Property.
+# (GitHub Pages ignores .htaccess; the <meta> CSP in the HTML covers that host.)
+
+# Force HTTPS so the security headers below are always reached.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=()"
+  Header always set Strict-Transport-Security "max-age=31536000"
+  # Client-only release: no third-party endpoints. connect-src is 'self' (submit.php).
+  # (If web3forms is ever enabled, add its host here AND in the index.html <meta> CSP —
+  #  keep the two identical.) Google Fonts hosts are allowed for style/font only.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; form-action 'self'"
+</IfModule>
+
+# Cache policy: the app shell + fee data always revalidate so corrected code and
+# updated tariffs reach users on the next online load; static art may cache a while.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|css|js|json|webmanifest)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "^sw\.js$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(png|jpg|jpeg|svg|webp|ico|woff2?)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>
+
+# Never serve internal docs, SQL, or the captured-lead log if any are uploaded.
+<FilesMatch "\.(md|sql|jsonl)$">
+  Require all denied
+</FilesMatch>
+<Files "leads.log.jsonl">
+  Require all denied
+</Files>

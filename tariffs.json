@@ -1,0 +1,40 @@
+{
+  "_README": "HSG Property rates. Edit the numbers here when SARS / the LSSA tariff / the Deeds Office change, then save this one file on the host — every app updates on the next online load. Use null for an 'and above' top band. (Keys starting with _ are ignored.)",
+  "_updated": "2026-07-07",
+  "_sources": "SARS transfer duty (1 Apr 2026); LSSA conveyancing fee guideline effective 1 Jul 2026 (JLS Circular 22/2026, Schedule 2026); Deeds Office Gazette 54225 / GN 7180 (reg 84, 1 Apr 2026).",
+
+  "vatRate": 0.15,
+  "affordabilityIncomeRule": 0.30,
+
+  "transfer": { "rateCertificateFee": 830, "disbursementsFee": 1900, "ficaFee": 520 },
+  "bond": { "disbursementsFee": 1900 },
+
+  "dutyBands": [
+    { "from": 0,        "upTo": 1210000,  "base": 0,       "rate": 0 },
+    { "from": 1210000,  "upTo": 1663800,  "base": 0,       "rate": 0.03 },
+    { "from": 1663800,  "upTo": 2329300,  "base": 13614,   "rate": 0.06 },
+    { "from": 2329300,  "upTo": 2994800,  "base": 53544,   "rate": 0.08 },
+    { "from": 2994800,  "upTo": 13310000, "base": 106784,  "rate": 0.11 },
+    { "from": 13310000, "upTo": null,     "base": 1241456, "rate": 0.13 }
+  ],
+
+  "lssaBands": [
+    { "from": 0,       "upTo": 100000,  "base": 6875,  "per": 0,    "step": 1 },
+    { "from": 100000,  "upTo": 500000,  "base": 6875,  "per": 1100, "step": 50000 },
+    { "from": 500000,  "upTo": 1000000, "base": 15675, "per": 2120, "step": 100000 },
+    { "from": 1000000, "upTo": 5000000, "base": 26275, "per": 2120, "step": 200000 },
+    { "from": 5000000, "upTo": null,    "base": 68675, "per": 5340, "step": 1000000 }
+  ],
+
+  "deedsTransferBands": [
+    [100000, 50], [200000, 114], [300000, 727], [600000, 956], [800000, 1346],
+    [1000000, 1546], [2000000, 1738], [4000000, 2408], [6000000, 2922], [8000000, 3480],
+    [10000000, 4068], [15000000, 4844], [20000000, 5818], [null, 7751]
+  ],
+
+  "deedsBondBands": [
+    [150000, 561], [300000, 727], [600000, 956], [800000, 1346], [1000000, 1546],
+    [2000000, 1738], [4000000, 2408], [6000000, 2922], [8000000, 3480], [10000000, 4068],
+    [15000000, 4844], [20000000, 5818], [30000000, 6781], [null, 9690]
+  ]
+}
