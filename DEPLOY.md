@@ -19,16 +19,20 @@ cPanel → **Domains** (or **Subdomains**):
 (If your DNS is hosted elsewhere, add a record so `app` points to this server.)
 
 ## Step 2 — Upload the files
-cPanel → **File Manager** → open that subdomain folder → upload everything from
-`C:\Users\bremn\dev\hsg-property` **except** `node_modules/`, `scripts/`, `package.json`,
-`README.md`, `DESIGN-BRIEF.md`.
+A ready-to-upload bundle is already built for you: **`dist/hsg-property-client.zip`**
+(the client app only — no portal/backend, no dev files).
 
-**Must be uploaded** (keep the folder structure):
+cPanel → **File Manager** → open the subdomain's Document Root folder →
+**Upload** `dist/hsg-property-client.zip` → select it → **Extract** → then delete the zip.
+
+You should end up with this structure in the folder (note it includes `tariffs.json`,
+the file you'll edit to update fees, and `submit.php`, the quote-email handler):
 ```
-index.html   manifest.webmanifest   sw.js   submit.php
+index.html   manifest.webmanifest   sw.js   submit.php   tariffs.json
 css/         js/        assets/      icons/
 ```
-Tip: zip the project, upload the zip, then **Extract** in File Manager.
+(Rebuild the bundle any time after changes with **`npm run pack`**. The portal/, supabase/,
+scripts/ and js/lib/ folders are intentionally NOT shipped to clients.)
 
 ## Step 3 — Turn on HTTPS (required)
 cPanel → **SSL/TLS Status** → run **AutoSSL** for the subdomain. The app must load over
@@ -51,15 +55,46 @@ cPanel → **SSL/TLS Status** → run **AutoSSL** for the subdomain. The app mus
 - No-PHP alternative: sign up free at **web3forms.com** with `legal@hsginc.co.za`, copy the
   Access Key, and paste it into `js/app.js` → `web3formsKey: "your-key"`.
 
-## Step 5 — Promote it
-Add a button or QR code on `hsgattorneys.co.za` linking to `https://app.hsgattorneys.co.za`
-("Open our property calculator app").
+## Step 5 — Distribute it to clients
+The app installs straight from the browser — there's no app store and no file to download.
+Point clients to **https://app.hsgattorneys.co.za** any of these ways:
+
+- **QR code** (ready-made in `dist/`): `hsg-property-qr.png` / `.svg`. Put it on business cards,
+  email signatures, brochures, the office window, or WhatsApp. Scanning opens the app.
+- **Link/button** on `hsgattorneys.co.za`: "Open our property calculator".
+- **WhatsApp / SMS / email**: just send the link.
+
+Tell clients they can keep it like an app:
+- **iPhone (Safari):** Share → **Add to Home Screen**. (The app shows this hint automatically.)
+- **Android (Chrome):** menu **⋮** → **Install app** / **Add to Home screen** (an Install banner
+  also appears).
+
+Once installed it opens full-screen with the HSG icon, works offline, and quietly picks up
+new fees whenever you update `tariffs.json`.
+
+> The QR code encodes `https://app.hsgattorneys.co.za`, so it only works **after** Steps 1–3
+> are done and that address is live. Re-generate it if you use a different address:
+> `python -c "import segno; segno.make('https://YOUR-URL', error='h').save('dist/hsg-property-qr.png', scale=10, border=3, dark='#121212')"`
 
 ---
 
 ## Changing things later (no coding)
 - **Phone / email / website:** the `SITE` block at the top of `js/app.js`.
 - **Lead destination email:** `$TO` at the top of `submit.php`.
-- **Fees / rates** (when SARS / LSSA / Deeds Office change): `js/tariffs.js` — one file.
 - After **any** change, re-upload the file and bump the version in `sw.js`
-  (`hsg-property-v3` → `-v4`) so phones download the new version.
+  (`hsg-property-v10` → `-v11`) so phones download the new version.
+
+### Updating fees / rates (SARS transfer duty, LSSA guideline, Deeds Office)
+Rates live in **`tariffs.json`** — the app fetches it on every online load, so editing
+that one file updates every installed app on next launch. To update safely:
+
+1. **Edit `tariffs.json`** — change only the numbers. Use `null` for an "and above" top band.
+2. **Check it before uploading:** `node scripts/check-tariffs.mjs`
+   It confirms the file is valid, that no section was silently rejected, and prints the
+   new fees at sample prices to eyeball. `RESULT: OK` = safe; `DO NOT DEPLOY` = fix first.
+   (If a section is invalid the app keeps the OLD built-in fees for it — the check catches
+   this so an update never silently fails to take.)
+3. **Upload `tariffs.json`** to the host. Done — no version bump needed for a rates-only change.
+4. **At a full release** (recommended so the offline fallback stays current): also update the
+   matching `DEFAULTS` in `js/tariffs.js` and the expected values in `scripts/test-rates.mjs`,
+   then run `npm run test:rates`.

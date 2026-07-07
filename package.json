@@ -1,6 +1,6 @@
 {
   "name": "hsg-property",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "HSG Attorneys property toolkit — installable web app (calculators + lead capture).",
@@ -8,6 +8,8 @@
     "serve": "node scripts/serve.mjs",
     "test:calc": "node scripts/test-calc.mjs",
     "test:rates": "node scripts/test-rates.mjs",
+    "check:tariffs": "node scripts/check-tariffs.mjs",
+    "pack": "python scripts/pack-dist.py",
     "lint": "eslint ."
   },
   "devDependencies": {

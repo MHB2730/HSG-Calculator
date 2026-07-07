@@ -19,7 +19,7 @@ R1m / R2m / R3m / R5m.
 
 ## Run it locally
 ```
-cd C:\Users\bremn\dev\hsg-property
+cd path/to/hsg-property
 npm run serve        # then open http://localhost:4178
 npm run test:calc    # prints the calculation checks
 ```
@@ -44,12 +44,18 @@ mistake can never break a quote. After a change, verify with `npm run test:calc`
 `npm run test:rates`.
 
 ## Deploy (cPanel / any host)
+**`DEPLOY.md` is the authoritative step-by-step guide — follow it.** The essentials:
+
 1. Point a subdomain, e.g. `app.hsgattorneys.co.za`, at a folder.
-2. Upload **all files** (keep the folder structure: `css/ js/ icons/ assets/`,
-   `index.html`, `manifest.webmanifest`, `sw.js`). Serve over **HTTPS** (required
-   for install + offline).
+2. **Deploy ONLY the pre-built client bundle `dist/hsg-property-client.zip`.** Rebuild
+   it with `npm run pack`, then upload and extract *that zip* on the host. **Never upload
+   the repo root.** The `portal/`, `supabase/`, `js/lib/` and `scripts/` folders are the
+   **parked Stage-2 backend / dev files** and must **not** reach the public host. The zip
+   contains only the client PWA (`index.html`, `manifest.webmanifest`, `sw.js`,
+   `submit.php`, `tariffs.json`, and `css/ js/ assets/ icons/`). Serve over **HTTPS**
+   (required for install + offline).
 3. When you change any file, bump `CACHE` in `sw.js` (e.g. `-v2` → `-v3`) so phones
-   pick up the new version.
+   pick up the new version, then re-run `npm run pack` before uploading.
 4. Add an "Install our app" link / QR code on hsgattorneys.co.za.
 
 ## Branding notes
@@ -66,6 +72,7 @@ mistake can never break a quote. After a change, verify with `npm run test:calc`
 index.html                 app shell (4 calculators, quote + share modals, dark-mode toggle)
 manifest.webmanifest       installable-app settings (theme/icons)
 sw.js                      offline cache (service worker) — bump CACHE on changes
+submit.php                 server-side lead handler (ships in the client bundle)
 css/styles.css             the visual design (monochrome, light + dark themes)
 js/app.js                  app controller + SITE settings (tabs, share, lead, install, theme)
 js/tariffs.js              THE CALCULATION BRAIN (baked-in DEFAULTS + tariffs.json loader)
@@ -77,5 +84,9 @@ icons/                     installable-app icons (192 / 512 / maskable / apple-t
 scripts/serve.mjs          tiny local preview server
 scripts/test-calc.mjs      calculation sanity checks
 scripts/test-rates.mjs     rates-file + override tests
+scripts/check-tariffs.mjs  validates tariffs.json (npm run check:tariffs)
+scripts/pack-dist.py       builds dist/hsg-property-client.zip (npm run pack)
+dist/                      build output — the deployable client bundle (not deployed as-is)
+portal/  supabase/  js/lib/  PARKED Stage-2 backend (login, tracking, vault) — NEVER deployed
 DESIGN-BRIEF.md            the design spec used for the visual design
 ```
