@@ -1,6 +1,6 @@
 /* sw.js — service worker for offline use.
    Bump CACHE when you change files so phones pick up the new version. */
-const CACHE = 'hsg-property-v9';
+const CACHE = 'hsg-property-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
   './assets/brand/emblem-mask.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
 ];
 
@@ -49,8 +50,11 @@ self.addEventListener('fetch', (e) => {
     // reach users when online; fall back to the cache when offline.
     e.respondWith(
       fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        // Only cache genuine successes — never poison the cache with a 404/500.
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
         return res;
       }).catch(() =>
         caches.match(req).then((hit) =>
@@ -65,8 +69,12 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(req).then((hit) =>
       hit || fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        // Only cache real, readable successes: skip opaque (status 0) and errors,
+        // so a captive-portal/MITM/transient bad body can't be pinned forever.
+        if (res && res.ok && (res.type === 'basic' || res.type === 'cors')) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
         return res;
       }).catch(() => hit)
     )

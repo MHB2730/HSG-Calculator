@@ -13,7 +13,7 @@ const SITE = {
   appName: "HSG Property",
   firmName: "HSG Attorneys",
   tagline: "Property cost & bond toolkit",
-  disclaimer: "These calculators provide estimates for guidance only and do not constitute a formal quotation or legal advice. Figures are based on current published tariffs and may change — contact HSG Attorneys for a formal quote.",
+  disclaimer: "These calculators provide estimates for guidance only and do not constitute a formal quotation or legal advice. Figures are based on published tariffs as at July 2026 and may change — contact HSG Attorneys for a formal quote.",
   // HSG offices — the "Call HSG" button offers these and best-effort highlights the nearest.
   offices: [
     { city: "Durban", region: "KwaZulu-Natal", phone: "+27 31 266 7751" },
@@ -35,8 +35,13 @@ const DEFAULT_TERM = 20;
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-// "R 1 234 567" — South African spacing, rounded
-const groupR = n => "R " + Math.round(Number(n) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+// "R 1 234 567" — South African spacing, rounded. Guards against non-finite and
+// very large values so the output never degrades to exponential ("R 1e+21").
+const groupR = n => {
+  let v = Math.round(Number(n) || 0);
+  if (!Number.isFinite(v)) v = 0;
+  return "R " + v.toLocaleString("en-US").replace(/,/g, " ");
+};
 const numFrom = id => {
   const el = document.getElementById(id);
   if (!el) return 0;
@@ -162,19 +167,41 @@ const CALC = {
   afford:   { fn: calcAfford,   out: "aff-results",      kind: "headline" },
 };
 
+// Debounced screen-reader announcement of the latest estimate (avoids spamming the
+// live region on every keystroke).
+let _a11yTimer = null;
+function announce(msg) {
+  const el = document.getElementById("a11y-status");
+  if (!el) return;
+  clearTimeout(_a11yTimer);
+  _a11yTimer = setTimeout(() => { el.textContent = msg || ""; }, 700);
+}
+
 function recompute(which) {
   const c = CALC[which];
   const data = c.fn();
   paint(c.out, data ? (c.kind === "breakdown" ? renderBreakdown(data) : renderHeadline(data)) : "");
+  if (which === activeTab) {
+    announce(!data ? "" : (c.kind === "breakdown"
+      ? `${data.totalLabel}: ${groupR(data.total)}. ${data.grandLabel}: ${groupR(data.grand)}.`
+      : `${data.headlineLabel}: ${data.headlineValue}${data.per || ""}.`));
+  }
   return data;
 }
 
 /* ---------- Tabs ---------- */
+const TAB_ORDER = ["transfer", "bond", "repayment", "afford"];
 let activeTab = "transfer";
-function selectTab(name) {
+function selectTab(name, focusTab = false) {
   activeTab = name;
-  $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
   const map = { transfer: "panel-transfer", bond: "panel-bond", repayment: "panel-repayment", afford: "panel-afford" };
+  $$(".tab").forEach(t => {
+    const on = t.dataset.tab === name;
+    t.classList.toggle("active", on);
+    t.setAttribute("aria-selected", on ? "true" : "false");
+    t.tabIndex = on ? 0 : -1;                 // roving tabindex (ARIA tabs pattern)
+    if (on && focusTab) t.focus();
+  });
   $$(".panel").forEach(p => p.classList.toggle("active", p.id === map[name]));
 }
 
@@ -189,7 +216,7 @@ function attachMoney(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener("input", () => {
-    const digits = el.value.replace(/[^\d]/g, "");
+    const digits = el.value.replace(/[^\d]/g, "").slice(0, 12); // cap at ~R999 billion
     el.value = digits ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ") : "";
     recompute(INPUT_MAP[id]);
   });
@@ -226,20 +253,49 @@ function scenarioText() {
 }
 
 /* ---------- Modals + toast ---------- */
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),textarea,select,[tabindex]:not([tabindex="-1"])';
+let _lastFocus = null;
 function openModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
+  _lastFocus = document.activeElement;                 // remember what to restore on close
+  const app = document.querySelector(".app");
+  if (app) app.setAttribute("inert", "");              // make the background unreachable (Tab + AT)
   m.classList.add("open"); document.body.classList.add("modal-open");
+  // Move focus into the dialog (first field/control, else the sheet itself), after
+  // the open class applies. setTimeout (not rAF) so it also fires in hidden tabs.
+  setTimeout(() => {
+    const first = m.querySelector(FOCUSABLE) || m.querySelector(".sheet");
+    if (first) { if (!first.hasAttribute("tabindex") && first.classList?.contains("sheet")) first.tabIndex = -1; first.focus(); }
+  }, 0);
 }
 function closeModal(id) {
   const m = document.getElementById(id);
   if (!m) return;
   m.classList.remove("open");
-  if (!$$(".modal.open").length) document.body.classList.remove("modal-open");
+  if (!$$(".modal.open").length) {
+    document.body.classList.remove("modal-open");
+    const app = document.querySelector(".app");
+    if (app) app.removeAttribute("inert");
+    if (_lastFocus && _lastFocus.focus) _lastFocus.focus();  // return focus to the trigger
+    _lastFocus = null;
+  }
 }
-function toast(msg) {
-  let t = document.getElementById("toast");
-  if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; document.body.appendChild(t); }
+// Trap Tab within the open modal (ARIA dialog pattern).
+function trapFocus(e) {
+  if (e.key !== "Tab") return;
+  const m = $(".modal.open");
+  if (!m) return;
+  const items = $$(FOCUSABLE, m).filter(el => el.offsetParent !== null || el === document.activeElement);
+  if (!items.length) return;
+  const first = items[0], last = items[items.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+function toast(msg, urgent = false) {
+  const t = document.getElementById("toast");
+  if (!t) return;
+  t.setAttribute("aria-live", urgent ? "assertive" : "polite");
   t.textContent = msg; t.classList.add("show");
   clearTimeout(toast._t);
   toast._t = setTimeout(() => t.classList.remove("show"), 2600);
@@ -313,7 +369,7 @@ async function doShare(method) {
     if (blob) { downloadBlob(blob, "hsg-estimate.png"); toast("Image saved"); }
   } else if (method === "whatsapp") {
     const copied = await copyImage(blob);
-    window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+    window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
     if (copied) toast("Image copied — paste it into the chat");
     else if (blob) { downloadBlob(blob, "hsg-estimate.png"); toast("Image saved — attach it in WhatsApp"); }
   } else if (method === "email") {
@@ -347,15 +403,24 @@ function openQuote() {
 }
 function validateLead(form) {
   let ok = true;
+  let firstBad = null;
   const check = (name, valid) => {
-    const field = form.querySelector(`[name="${name}"]`).closest(".field");
+    const input = form.querySelector(`[name="${name}"]`);
+    const field = input && input.closest(".field");
     if (field) field.classList.toggle("has-error", !valid);
-    if (!valid) ok = false;
+    if (input) input.setAttribute("aria-invalid", valid ? "false" : "true");
+    if (!valid) { ok = false; if (!firstBad) firstBad = input; }
   };
   check("name", form.name.value.trim().length > 1);
   check("phone", form.phone.value.replace(/\D/g, "").length >= 7);
   check("email", /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.value.trim()));
-  if (!form.consent.checked) { ok = false; toast("Please accept the POPIA consent to continue"); }
+  // Consent error is a standalone alert (not inside a .field), toggled directly.
+  const consentErr = document.getElementById("err-lead-consent");
+  const consentOk = form.consent.checked;
+  if (consentErr) consentErr.classList.toggle("is-shown", !consentOk);
+  form.consent.setAttribute("aria-invalid", consentOk ? "false" : "true");
+  if (!consentOk) { ok = false; if (!firstBad) firstBad = form.consent; }
+  if (firstBad && firstBad.focus) firstBad.focus();   // move focus to the first problem
   return ok;
 }
 async function sendLead(data) {
@@ -364,7 +429,28 @@ async function sendLead(data) {
     `Name: ${data.name}\nPhone: ${data.phone}\nEmail: ${data.email}\n\n` +
     `--- Calculation ---\n${data.scenario}\n\nSent from the ${SITE.appName} app.`;
 
-  // 1) Web3Forms (only if a key is configured)
+  // 1) Same-origin PHP endpoint FIRST (works on cPanel hosting — no key needed,
+  //    and keeps the visitor's PII on the firm's own server. POPIA-preferred:
+  //    only fall out to a third party if the firm's own endpoint is unavailable.)
+  try {
+    const res = await fetch("./submit.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.name, phone: data.phone, email: data.email,
+        scenario: data.scenario, company: data.company || "",
+        consent: !!data.consent,
+      }),
+    });
+    if (res.ok) {
+      const j = await res.json().catch(() => ({}));
+      if (j.success) return true;
+    }
+  } catch { /* fall through */ }
+
+  // 2) Web3Forms (only if a key is configured) — a third-party processor, so it
+  //    is the fallback, not the default. NOTE: requires the CSP connect-src to
+  //    list api.web3forms.com, otherwise this fetch is blocked.
   if (SITE.web3formsKey) {
     try {
       const res = await fetch("https://api.web3forms.com/submit", {
@@ -376,22 +462,6 @@ async function sendLead(data) {
       if (json.success) return true;
     } catch { /* fall through */ }
   }
-
-  // 2) Same-origin PHP endpoint (works on cPanel hosting — no key needed)
-  try {
-    const res = await fetch("./submit.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: data.name, phone: data.phone, email: data.email,
-        scenario: data.scenario, company: data.company || "",
-      }),
-    });
-    if (res.ok) {
-      const j = await res.json().catch(() => ({}));
-      if (j.success) return true;
-    }
-  } catch { /* fall through */ }
 
   // 3) Fallback: open the visitor's own email app addressed to the firm
   window.location.href = "mailto:" + encodeURIComponent(SITE.email) +
@@ -409,6 +479,10 @@ function initTheme() {
     const attr = document.documentElement.getAttribute("data-theme");
     const isDark = attr === "dark" || (!attr && matchMedia("(prefers-color-scheme: dark)").matches);
     btn.classList.toggle("is-dark", isDark);
+    // Keep the browser chrome (theme-color) matching the ACTIVE theme, including a
+    // manual toggle that differs from the OS colour scheme.
+    const chrome = isDark ? "#121212" : "#F4F4F4";
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute("content", chrome));
   };
   sync();
   btn.addEventListener("click", () => {
@@ -483,6 +557,18 @@ function init() {
     lg.addEventListener('error', onErr);
     if (lg.complete && lg.naturalWidth === 0) onErr();
   }
+  // Footer logo: hide cleanly if the asset is missing (mirrors the app-bar fallback).
+  const flg = document.querySelector('.footer-logo');
+  if (flg) {
+    const onErrF = () => { flg.style.display = 'none'; };
+    flg.addEventListener('error', onErrF);
+    if (flg.complete && flg.naturalWidth === 0) onErrF();
+  }
+  // Every inline SVG here is decorative (its control carries visible text or an
+  // aria-label), so hide them from assistive tech and drop any stray tab stop.
+  document.querySelectorAll('svg:not([aria-hidden])').forEach(s => {
+    s.setAttribute('aria-hidden', 'true'); s.setAttribute('focusable', 'false');
+  });
   initTheme();
   initInstall();
 
@@ -492,6 +578,16 @@ function init() {
   setVal("aff-rate", DEFAULT_RATE); setVal("aff-years", DEFAULT_TERM);
 
   $$(".tab").forEach(t => t.addEventListener("click", () => selectTab(t.dataset.tab)));
+  // ARIA tabs keyboard model: arrow keys / Home / End move between tabs.
+  $(".tabs")?.addEventListener("keydown", e => {
+    const i = TAB_ORDER.indexOf(activeTab);
+    let j = -1;
+    if (e.key === "ArrowRight") j = (i + 1) % TAB_ORDER.length;
+    else if (e.key === "ArrowLeft") j = (i - 1 + TAB_ORDER.length) % TAB_ORDER.length;
+    else if (e.key === "Home") j = 0;
+    else if (e.key === "End") j = TAB_ORDER.length - 1;
+    if (j >= 0) { e.preventDefault(); selectTab(TAB_ORDER[j], true); }
+  });
   ["transfer-price", "bond-loan", "rep-loan", "aff-gross", "aff-expenses", "aff-deposit"].forEach(attachMoney);
   ["rep-rate", "rep-years", "aff-rate", "aff-years"].forEach(attachNumber);
 
@@ -535,6 +631,7 @@ function init() {
 
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") $$(".modal.open").forEach(m => closeModal(m.id));
+    else trapFocus(e);
   });
 
   // Pull the firm's live rates (tariffs.json). Baked-in values are the offline fallback.
