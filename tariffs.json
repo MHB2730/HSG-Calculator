@@ -1,7 +1,7 @@
 {
   "_README": "HSG Property rates. Edit the numbers here when SARS / the LSSA tariff / the Deeds Office change, then save this one file on the host — every app updates on the next online load. Use null for an 'and above' top band. (Keys starting with _ are ignored.)",
-  "_updated": "2026-06-07",
-  "_sources": "SARS transfer duty (1 Apr 2026); LSSA conveyancing tariff (1 Aug 2025); Deeds Office Gazette 54225 / GN 7180 (1 Apr 2026).",
+  "_updated": "2026-07-07",
+  "_sources": "SARS transfer duty (1 Apr 2026); LSSA conveyancing fee guideline effective 1 Jul 2026 (JLS Circular 22/2026, Schedule 2026); Deeds Office Gazette 54225 / GN 7180 (reg 84, 1 Apr 2026).",
 
   "vatRate": 0.15,
   "affordabilityIncomeRule": 0.30,
@@ -19,11 +19,11 @@
   ],
 
   "lssaBands": [
-    { "from": 0,       "upTo": 100000,  "base": 6640,  "per": 0,    "step": 1 },
-    { "from": 100000,  "upTo": 500000,  "base": 6640,  "per": 1060, "step": 50000 },
-    { "from": 500000,  "upTo": 1000000, "base": 15120, "per": 2050, "step": 100000 },
-    { "from": 1000000, "upTo": 5000000, "base": 25370, "per": 2050, "step": 200000 },
-    { "from": 5000000, "upTo": null,    "base": 66370, "per": 5160, "step": 1000000 }
+    { "from": 0,       "upTo": 100000,  "base": 6875,  "per": 0,    "step": 1 },
+    { "from": 100000,  "upTo": 500000,  "base": 6875,  "per": 1100, "step": 50000 },
+    { "from": 500000,  "upTo": 1000000, "base": 15675, "per": 2120, "step": 100000 },
+    { "from": 1000000, "upTo": 5000000, "base": 26275, "per": 2120, "step": 200000 },
+    { "from": 5000000, "upTo": null,    "base": 68675, "per": 5340, "step": 1000000 }
   ],
 
   "deedsTransferBands": [
