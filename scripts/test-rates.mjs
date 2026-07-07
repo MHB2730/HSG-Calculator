@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
 // Verify: (1) refactored engine matches the known values, (2) tariffs.json loads
 // and is identical to the baked-in defaults, (3) a remote override actually changes results.
 import { readFileSync } from 'node:fs';

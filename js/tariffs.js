@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
+/*
  * tariffs.js — THE CALCULATION BRAIN
  * -----------------------------------
  * All rates live in DEFAULTS below (the verified, current values) AND can be
@@ -207,3 +211,4 @@ export function affordability({ grossIncome, expenses = 0, annualRatePct, years,
   }
   return { affordableInstalment, maxLoan, indicativePrice: maxLoan + deposit };
 }
+// internal build marker: mhb-tariffwarden-f46e00f89c934e0a80c42e5d6c2db1bb

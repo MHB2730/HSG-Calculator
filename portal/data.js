@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
+/*
  * portal/data.js — data layer for the client portal + staff admin.
  *
  * PROTOTYPE: data lives in localStorage (key `hsg-portal-demo`), seeded from

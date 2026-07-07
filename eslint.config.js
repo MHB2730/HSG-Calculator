@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
 import js from '@eslint/js';
 import globals from 'globals';
 

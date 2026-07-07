@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
+/*
  * portal/auth.js — staff authentication via Supabase Auth (email + password).
  *
  * Clients NEVER use this (they look up by reference + surname). This is only for

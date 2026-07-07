@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
 /* portal.js — client transfer tracker (prototype, sample data). */
 import { STAGES, lookupMatter } from './data.js';
 
