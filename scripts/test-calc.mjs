@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
 // Quick sanity check of the calculation brain against known values.
 import {
   transferDuty, attorneyFee, transferDeedsFee, bondDeedsFee,

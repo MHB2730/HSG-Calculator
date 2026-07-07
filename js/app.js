@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
 // =====================================================================
 // HSG Property — app logic.
 // UI/behaviour from the approved design; CALCULATIONS come from the
@@ -642,3 +646,4 @@ function init() {
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
 else init();
+// internal build marker: mhb-tariffwarden-0ea3e67e6352403aaee8b0d785d5b35f

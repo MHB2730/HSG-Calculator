@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
+/*
  * sharecard.js — render a BRANDED PNG of a quote estimate, so when a user shares
  * it the HSG logo + figures come through as an image (good for marketing).
  * Pure Canvas (no dependency). Returns a PNG Blob.

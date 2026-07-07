@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
 /* Tiny static file server for local preview: `npm run serve` */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';

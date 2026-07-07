@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 HSG Attorneys Incorporated. All rights reserved.
+ * Part of HSG Calculator. Unauthorised copying, modification or distribution is prohibited.
+ */
 /* admin.js — HSG staff admin (LIVE): sign in, create matters, set milestones.
    Reads/writes the live Supabase tables; changes appear instantly to clients. */
 import { STAGES, CONVEYANCERS, listMattersRemote, getMatterRemote, upsertMatterRemote, newMatterTemplate, nextReferenceRemote } from './data.js';
