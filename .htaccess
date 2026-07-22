@@ -41,3 +41,8 @@
 <Files "leads.log.jsonl">
   Require all denied
 </Files>
+
+# Config + SMTP helper are include-only (block raw HTTP access).
+<FilesMatch "^(mail-config|hsg-mail)\.php$">
+  Require all denied
+</FilesMatch>

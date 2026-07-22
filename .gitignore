@@ -7,6 +7,12 @@ Thumbs.db
 dist/
 
 # --- secrets (added by security audit) ---
+# Live SMTP credentials. Commit mail-config.example.php instead; the real
+# file is uploaded to the server by hand and never enters git.
+mail-config.php
+# Captured leads = client PII (names, phones, emails, IPs, POPIA consent).
+# Lives on the server only. *.log above does not cover the .jsonl suffix.
+leads.log.jsonl
 .env
 .env.*
 !.env.example

@@ -9,9 +9,16 @@ DIST  = os.path.join(ROOT, "dist")
 STAGE = os.path.join(DIST, "client")
 ZIP   = os.path.join(DIST, "hsg-property-client.zip")
 
-# Client PWA only — explicit allow-list (nothing from portal/ supabase/ js/lib/).
-FILES = ["index.html", "manifest.webmanifest", "sw.js", "submit.php", "tariffs.json", ".nojekyll", ".htaccess", "robots.txt", "sitemap.xml"]
-DIRS  = ["css", "assets", "icons"]
+# Client PWA + the server-side mail stack — explicit allow-list
+# (nothing from portal/ supabase/ js/lib/).
+#
+# NOTE: mail-config.php is deliberately NOT packed. It holds the SMTP
+# password, is .gitignore'd, and is uploaded to the server once by hand.
+# Extracting this bundle over a live site therefore leaves the existing
+# mail-config.php untouched, which is what we want. See mail-config.example.php.
+FILES = ["index.html", "manifest.webmanifest", "sw.js", "submit.php", "hsg-mail.php",
+         "leads.php", "tariffs.json", ".nojekyll", ".htaccess", "robots.txt", "sitemap.xml"]
+DIRS  = ["css", "assets", "icon"]
 JS    = ["app.js", "tariffs.js", "sharecard.js"]  # NOT js/lib (portal-only)
 
 os.makedirs(DIST, exist_ok=True)
