@@ -5,6 +5,8 @@ Thumbs.db
 .vscode/
 .idea/
 dist/
+# Throwaway staging dir recreated by scripts/test-mail.php on every run
+scripts/stage-test/
 
 # --- secrets (added by security audit) ---
 # Live SMTP credentials. Commit mail-config.example.php instead; the real
