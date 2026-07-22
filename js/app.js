@@ -25,6 +25,7 @@ const SITE = {
   ],
   email: "legal@hsginc.co.za",            // lead destination + mailto fallback address
   website: "https://hsgattorneys.co.za",
+  whatsapp: "+27 63 729 2207",            // HSG WhatsApp Business — quote chats land here
   // How quote requests reach the firm:
   //   1. ./submit.php on your cPanel host emails them automatically (no key needed).
   //   2. Optionally paste a free Web3Forms key (https://web3forms.com) to use that instead.
@@ -427,6 +428,32 @@ function validateLead(form) {
   if (firstBad && firstBad.focus) firstBad.focus();   // move focus to the first problem
   return ok;
 }
+/* ---------- WhatsApp ----------
+ * wa.me needs the number in international form with no +, spaces or
+ * punctuation: "+27 63 729 2207" -> "27637292207". */
+function waNumber() {
+  return String(SITE.whatsapp || "").replace(/[^0-9]/g, "");
+}
+
+/** Click-to-chat link, optionally pre-filled. */
+function waLink(text) {
+  const n = waNumber();
+  if (!n) return "";
+  // Very long prefills get truncated or dropped by WhatsApp, so cap the text.
+  const msg = text ? String(text).slice(0, 1200) : "";
+  return "https://wa.me/" + n + (msg ? "?text=" + encodeURIComponent(msg) : "");
+}
+
+/** First-person message the client sends to HSG. */
+function waQuoteMessage(data) {
+  let m = `Hi ${SITE.firmName}, I'd like a formal quote.\n\n`;
+  m += `Name: ${data.name}\n`;
+  m += `Phone: ${data.phone}\n`;
+  m += `Email: ${data.email}\n`;
+  if (data.scenario) m += `\n--- My estimate ---\n${data.scenario}\n`;
+  return m;
+}
+
 async function sendLead(data) {
   const subject = `New property enquiry — ${data.name || "website visitor"}`;
   const body =
@@ -447,6 +474,9 @@ async function sendLead(data) {
         // and the server then discards the enquiry as bot traffic.
         scenario: data.scenario, hsg_leave_blank: data.hsg_leave_blank || "",
         consent: !!data.consent,
+        // Which route the client chose. Recorded in the lead log so the firm
+        // can see a WhatsApp enquiry is also coming through on that number.
+        channel: data.channel || "form",
       }),
     });
     if (res.ok) {
@@ -590,6 +620,13 @@ function fillSite() {
   $("#year").textContent = new Date().getFullYear();
   const web = $("#contact-web");
   if (web) web.href = SITE.website;
+  // Footer WhatsApp link — a plain chat, no pre-filled enquiry. Hide it
+  // entirely if no number is configured rather than leaving a dead link.
+  const wa = $("#contact-whatsapp");
+  if (wa) {
+    const href = waLink(`Hi ${SITE.firmName}, I have a property question.`);
+    if (href) wa.href = href; else wa.remove();
+  }
   // Build the Call-HSG office list (config data — safe to inject).
   const list = $("#call-list");
   if (list) {
@@ -686,6 +723,38 @@ function init() {
       toast("Could not send — please use the email option.");
     }
   });
+  /* "Chat on WhatsApp" — same form, different destination.
+   *
+   * Order matters: we record the lead on our own server BEFORE handing off to
+   * WhatsApp. wa.me only opens a PRE-FILLED DRAFT; if the client never presses
+   * send, or WhatsApp isn't installed, the enquiry would otherwise vanish with
+   * no trace — the exact failure mode that cost real clients today. Logging
+   * first means the firm still sees it in leads.php either way.
+   *
+   * The window is opened synchronously from the click (before any await), or
+   * mobile browsers treat it as an unrequested popup and block it. */
+  $("#lead-whatsapp")?.addEventListener("click", async () => {
+    if (!validateLead(form)) return;
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    const win = window.open(waLink(waQuoteMessage(data)), "_blank", "noopener");
+
+    const btn = $("#lead-whatsapp");
+    btn.classList.add("is-busy");
+    try { await sendLead(Object.assign({}, data, { channel: "whatsapp" })); }
+    catch { /* the chat is already open; never block it on our logging */ }
+    btn.classList.remove("is-busy");
+
+    if (!win) {
+      // Popup blocked — give them a direct link rather than a dead end.
+      toast("Allow pop-ups, or message us on " + SITE.whatsapp);
+      return;
+    }
+    toast("Opening WhatsApp — press send in the chat");
+    closeModal("lead-modal");
+    form.reset();
+  });
+
   form?.querySelectorAll("input").forEach(inp =>
     inp.addEventListener("input", () => inp.closest(".field")?.classList.remove("has-error")));
 

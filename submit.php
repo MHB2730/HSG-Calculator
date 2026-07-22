@@ -100,6 +100,14 @@ $scenario = mb_substr(trim((string)$scenarioRaw), 0, 4000);
 $consent   = filter_var($data['consent'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $consentTs = gmdate('c');
 
+/* Which route the client took: "form" (email) or "whatsapp". A WhatsApp
+ * enquiry is still recorded here BEFORE the client is handed to wa.me,
+ * because wa.me only opens a draft — if they never press send, this log is
+ * the only record that they ever asked for a quote. Whitelisted so the
+ * value can be trusted downstream. */
+$channelRaw = $clean($data['channel'] ?? 'form');
+$channel    = in_array($channelRaw, ['form', 'whatsapp'], true) ? $channelRaw : 'form';
+
 if ($name === '' || $phone === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     http_response_code(422);
     echo json_encode(['success' => false, 'error' => 'Invalid input']);
@@ -152,6 +160,7 @@ $record = [
     'scenario'   => $scenario,
     'consent'    => $consent,
     'consent_ts' => $consentTs,
+    'channel'    => $channel,
 ];
 
 /* Persist BEFORE emailing so a mail failure never loses the lead. */

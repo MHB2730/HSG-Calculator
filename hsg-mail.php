@@ -194,6 +194,14 @@ function hsg_build_enquiry_mail(array $lead): array {
         'B'
     );
     $consentText = ($consent ? 'yes' : 'no') . ' (recorded ' . $consentTs . ')';
+
+    /* A WhatsApp enquiry is emailed too, on purpose. wa.me only opens a
+     * draft — the client may never press send — so this email is the firm's
+     * guarantee of being notified either way. Flag it so staff know to also
+     * check WhatsApp rather than treating it as a duplicate. */
+    $isWhatsApp = (string)($lead['channel'] ?? 'form') === 'whatsapp';
+    $waNote = 'This client chose Chat on WhatsApp — expect a message on the '
+            . 'WhatsApp Business number as well. Reply there if it has arrived.';
     $warning = 'Unverified visitor input — verify the sender before acting on any '
              . 'links, attachments or phone numbers above.';
 
@@ -203,7 +211,9 @@ function hsg_build_enquiry_mail(array $lead): array {
     $text .= "Name:          $name\r\n";
     $text .= "Phone:         $phone\r\n";
     $text .= "Email:         $email\r\n";
-    $text .= "POPIA consent: $consentText\r\n\r\n";
+    $text .= "POPIA consent: $consentText\r\n";
+    if ($isWhatsApp) { $text .= "\r\n*** $waNote ***\r\n"; }
+    $text .= "\r\n";
     $text .= "--- CALCULATION ---\r\n\r\n";
     $text .= str_replace("\n", "\r\n", str_replace("\r\n", "\n", $scenario)) . "\r\n\r\n";
     $text .= "-- \r\n" . $warning . "\r\n";
@@ -229,7 +239,13 @@ function hsg_build_enquiry_mail(array $lead): array {
            . hsg_contact_row('Phone', $phone, $phone !== '' ? 'tel:' . preg_replace('/[^0-9+]/', '', $phone) : '')
            . hsg_contact_row('Email', $email, $email !== '' ? 'mailto:' . $email : '')
            . hsg_contact_row('POPIA consent', $consentText)
-           . '</table></td></tr>' . "\r\n"
+           . '</table>'
+           . ($isWhatsApp
+               ? '<div style="margin-top:12px;font:600 12px/1.5 Arial,sans-serif;color:#0b5c39;'
+                 . 'background:#e7f5ee;border:1px solid #bfe3d0;border-radius:5px;padding:10px 12px;">'
+                 . hsg_h($waNote) . '</div>'
+               : '')
+           . '</td></tr>' . "\r\n"
 
            // Calculation
            . '<tr><td style="padding:14px 24px 4px;">'
