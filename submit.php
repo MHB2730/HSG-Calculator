@@ -38,8 +38,50 @@ if (strlen($raw) > 20000) {
 $data = json_decode($raw, true);
 if (!is_array($data)) { $data = $_POST; }
 
-// Honeypot: bots fill the hidden "company" field; humans never see it.
-if (!empty($data['company'])) { echo json_encode(['success' => true]); exit; }
+/* ---- Honeypot -------------------------------------------------------
+ * Bots fill hidden fields; humans never see them. Two hard-won rules:
+ *
+ * 1. The field is NOT called "company". It used to be, and Chrome — on
+ *    Android especially — autofills anything it recognises as an
+ *    address-profile field (company / organization) from the user's saved
+ *    profile. autocomplete="off" does NOT stop that, and the field was
+ *    only positioned off-screen, so autofill still saw it. Any client who
+ *    tapped an autofill suggestion was classified a bot: this endpoint
+ *    returned success, the app said "Enquiry sent", and the enquiry was
+ *    discarded without ever being logged or emailed. Silent client loss.
+ *    Keep the name meaningless to autofill.
+ *
+ * 2. Rejections are LOGGED, not discarded. A honeypot that throws work
+ *    away invisibly cannot be audited — that is what let the bug above
+ *    run undetected. If a real client is ever caught, their details are
+ *    in honeypot.log.jsonl and they can still be contacted.
+ *
+ * We still answer success:true so a real bot learns nothing.
+ * ------------------------------------------------------------------- */
+$honeypot = is_array($data['hsg_leave_blank'] ?? '') ? '' : trim((string)($data['hsg_leave_blank'] ?? ''));
+if ($honeypot !== '') {
+    try {
+        $hpDir  = dirname(__FILE__);
+        $hpLine = json_encode([
+            'timestamp' => gmdate('c'),
+            'ip'        => isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : 'unknown',
+            'ua'        => mb_substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 200),
+            'honeypot'  => mb_substr($honeypot, 0, 100),
+            // Keep enough to rescue a false positive.
+            'name'      => mb_substr((string)($data['name']  ?? ''), 0, 100),
+            'phone'     => mb_substr((string)($data['phone'] ?? ''), 0, 40),
+            'email'     => mb_substr((string)($data['email'] ?? ''), 0, 120),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($hpLine !== false) {
+            @file_put_contents($hpDir . DIRECTORY_SEPARATOR . 'honeypot.log.jsonl',
+                               $hpLine . "\n", FILE_APPEND | LOCK_EX);
+        }
+    } catch (Throwable $e) {
+        // Never let logging block the response.
+    }
+    echo json_encode(['success' => true]);
+    exit;
+}
 
 $clean = function ($s) {
     if (is_array($s)) { return ''; }

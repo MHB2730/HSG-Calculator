@@ -385,8 +385,16 @@
           <div class="field-error" id="err-lead-email" role="alert">Please enter a valid email.</div>
         </div>
         <input type="hidden" id="lead-scenario" name="scenario">
+        <!-- Spam honeypot. Deliberately NOT named "company" and NOT using
+             autocomplete="off": Chrome (Android especially) autofills any
+             field it reads as an address-profile field regardless of
+             autocomplete="off", which made real clients look like bots and
+             silently binned their enquiries. "new-password" is the one hint
+             Chrome actually honours, and the name means nothing to autofill.
+             Keep it inert: hidden, unfocusable, excluded from a11y. -->
         <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden">
-          <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
+          <label>Leave this field empty<input type="text" name="hsg_leave_blank" tabindex="-1"
+                 autocomplete="new-password" inputmode="none" aria-hidden="true"></label>
         </div>
         <label class="consent">
           <input type="checkbox" name="consent" aria-describedby="err-lead-consent">

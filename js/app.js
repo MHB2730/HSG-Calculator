@@ -442,7 +442,10 @@ async function sendLead(data) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: data.name, phone: data.phone, email: data.email,
-        scenario: data.scenario, company: data.company || "",
+        // Honeypot field — see the note in index.html. It must NOT be called
+        // "company": Chrome autofill fills that from the user's saved profile
+        // and the server then discards the enquiry as bot traffic.
+        scenario: data.scenario, hsg_leave_blank: data.hsg_leave_blank || "",
         consent: !!data.consent,
       }),
     });
