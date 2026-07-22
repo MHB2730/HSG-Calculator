@@ -499,22 +499,74 @@ function initTheme() {
   });
 }
 
-/* ---------- Install / iOS hint ---------- */
+/* ---------- Install / iOS coach ----------
+ * Android/Chromium fires `beforeinstallprompt`, so there we show a real
+ * Install button. iOS NEVER fires it — Apple hasn't implemented the API and
+ * every iOS browser is WebKit — so the best possible there is a coach card
+ * explaining Share → Add to Home Screen. Notes learned the hard way:
+ *   - iPadOS ≥13 masquerades as a Mac ("MacIntel" + no "iPad" in the UA);
+ *     detect it via platform + maxTouchPoints or iPads see nothing at all.
+ *   - Dismissal used to be one shared, PERMANENT localStorage key: closing
+ *     the Android banner also silenced the iOS coach forever. Now the two
+ *     surfaces use separate keys, and the iOS coach may return after 14
+ *     days (an instruction is worth re-showing; a nag banner less so).
+ *   - Chrome/Firefox/Edge on iOS are WebKit too but put "Add to Home
+ *     Screen" in a different place than Safari — word the steps per browser.
+ */
 let deferredPrompt = null;
+const IOS_COACH_DELAY_MS = 2500;                       // let the calculator land first
+const IOS_COACH_RESHOW_MS = 14 * 24 * 3600 * 1000;     // dismissed coach returns after 14 days
+
 function initInstall() {
   const banner = $("#install-banner"), iosHint = $("#ios-hint");
-  const dismissed = localStorage.getItem("hsg-install-dismissed");
+  const bannerDismissed = localStorage.getItem("hsg-install-dismissed"); // legacy key: Android banner only
   const standalone = matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  // iPhone/iPod still say so in the UA; iPadOS 13+ claims to be MacIntel,
+  // but real Macs report 0 touch points.
+  const isIPhone = /iphone|ipod/i.test(navigator.userAgent);
+  const isIPad = /ipad/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isIOS = isIPhone || isIPad;
 
   window.addEventListener("beforeinstallprompt", e => {
     e.preventDefault(); deferredPrompt = e;
-    if (!dismissed && banner) banner.classList.remove("is-hidden");
+    if (!bannerDismissed && banner) banner.classList.remove("is-hidden");
   });
-  // iOS has no install prompt — show the Add-to-Home-Screen hint instead.
-  if (isIOS && !standalone && !dismissed && iosHint) {
-    setTimeout(() => iosHint.classList.remove("is-hidden"), 1200);
+
+  if (isIOS && !standalone && iosHint) {
+    // Separate dismissal state from the Android banner, with expiry.
+    let coachDismissedAt = 0;
+    try { coachDismissedAt = parseInt(localStorage.getItem("hsg-ios-coach-dismissed") || "0", 10) || 0; } catch {}
+    const snoozed = coachDismissedAt && (Date.now() - coachDismissedAt) < IOS_COACH_RESHOW_MS;
+
+    if (!snoozed) {
+      // Safari has no reliable feature-detect vs other iOS shells; UA tokens
+      // (CriOS = Chrome, FxiOS = Firefox, EdgiOS = Edge) are the convention.
+      const ua = navigator.userAgent;
+      const step1 = $("#ios-coach-step1");
+      const shareIcon = step1 ? step1.querySelector(".ios-coach-share")?.outerHTML || "" : "";
+      if (step1) {
+        if (/CriOS/i.test(ua)) {
+          // Chrome iOS: Share icon sits in the address bar.
+          step1.innerHTML = "Tap " + shareIcon + " <strong>Share</strong> in the address bar";
+        } else if (/FxiOS/i.test(ua)) {
+          // Firefox iOS: hamburger menu, not the share sheet.
+          step1.innerHTML = "Tap the <strong>menu</strong> (☰), then <strong>Share</strong>";
+        } else if (/EdgiOS/i.test(ua)) {
+          step1.innerHTML = "Tap the <strong>menu</strong> (⋯), then <strong>Share</strong>";
+        } else if (isIPad) {
+          // Safari on iPad: Share is in the TOP toolbar, next to the address bar.
+          step1.innerHTML = "Tap " + shareIcon + " <strong>Share</strong> at the top, next to the address bar";
+        }
+        // Default markup already says "Tap Share below" — correct for iPhone Safari.
+      }
+      // iPad toolbars are at the top: anchor the card up there and flip the arrow.
+      if (isIPad) iosHint.classList.add("points-up");
+      setTimeout(() => iosHint.classList.remove("is-hidden"), IOS_COACH_DELAY_MS);
+    }
   }
+
   $("#install-btn")?.addEventListener("click", async () => {
     if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; }
     else toast("Use your browser menu → “Add to Home screen”.");
@@ -524,7 +576,8 @@ function initInstall() {
     banner?.classList.add("is-hidden"); localStorage.setItem("hsg-install-dismissed", "1");
   });
   $("#ios-hint-close")?.addEventListener("click", () => {
-    iosHint?.classList.add("is-hidden"); localStorage.setItem("hsg-install-dismissed", "1");
+    iosHint?.classList.add("is-hidden");
+    try { localStorage.setItem("hsg-ios-coach-dismissed", String(Date.now())); } catch {}
   });
 }
 

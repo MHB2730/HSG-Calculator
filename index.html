@@ -100,13 +100,45 @@
         </div>
       </div>
 
-      <!-- iOS install hint -->
-      <div class="ios-hint is-hidden" id="ios-hint">
-        <svg class="ios-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8.5 6.5 12 3l3.5 3.5"/><path d="M6 12H5a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2h-1"/></svg>
-        <div class="ios-text">To install: tap <strong>Share</strong> then <strong>Add to Home Screen</strong>.</div>
-        <button class="btn-text" id="ios-hint-close" type="button" aria-label="Dismiss">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
+      <!-- iOS "Add to Home Screen" coach.
+           iOS has no beforeinstallprompt event — Apple has never implemented it
+           and every iOS browser is WebKit — so a real Install button is
+           impossible here. This is an instruction, anchored to the bottom of
+           the screen because that is where Safari's Share button sits on
+           iPhone. js/app.js fills in the step text per browser and flips
+           .points-up on iPad, where Share is in the TOP toolbar instead. -->
+      <div class="ios-coach is-hidden" id="ios-hint" role="dialog" aria-modal="false"
+           aria-labelledby="ios-coach-title" aria-describedby="ios-coach-steps">
+        <div class="ios-coach-card">
+          <button class="ios-coach-close" id="ios-hint-close" type="button" aria-label="Dismiss">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+
+          <div class="ios-coach-head">
+            <img class="ios-coach-icon" src="icon/icon-192.png" alt="">
+            <div>
+              <p class="ios-coach-title" id="ios-coach-title">Keep HSG Property on your home screen</p>
+              <p class="ios-coach-sub">Opens full screen, and the calculators keep working offline.</p>
+            </div>
+          </div>
+
+          <ol class="ios-coach-steps" id="ios-coach-steps">
+            <li>
+              <span class="ios-coach-num">1</span>
+              <span id="ios-coach-step1">Tap
+                <svg class="ios-coach-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8.5 6.5 12 3l3.5 3.5"/><path d="M6 12H5a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2h-1"/></svg>
+                <strong>Share</strong> below</span>
+            </li>
+            <li>
+              <span class="ios-coach-num">2</span>
+              <span>Scroll down and choose <strong>Add to Home Screen</strong></span>
+            </li>
+          </ol>
+
+          <div class="ios-coach-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15M6 13l6 6 6-6"/></svg>
+          </div>
+        </div>
       </div>
 
       <!-- ---------- TRANSFER ---------- -->

@@ -4,7 +4,7 @@
  */
 /* sw.js — service worker for offline use.
    Bump CACHE when you change files so phones pick up the new version. */
-const CACHE = 'hsg-property-v11';
+const CACHE = 'hsg-property-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -16,10 +16,11 @@ const ASSETS = [
   './tariffs.json',
   './assets/hsg-logo.png',
   './assets/brand/emblem-mask.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png',
+  './icon/favicon.svg',
+  './icon/icon-192.png',
+  './icon/icon-512.png',
+  './icon/icon-maskable-512.png',
+  './icon/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (e) => {
