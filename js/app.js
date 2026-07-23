@@ -444,6 +444,36 @@ function waLink(text) {
   return "https://wa.me/" + n + (msg ? "?text=" + encodeURIComponent(msg) : "");
 }
 
+/* Open a wa.me link.
+ *
+ * Two traps, both hit in production:
+ *
+ * 1. window.open(url, "_blank", "noopener") ALWAYS returns null — the spec
+ *    says so when noopener is set — so its return value can never be used to
+ *    detect a blocked popup. The old code treated null as "blocked" and bailed
+ *    out on every single click.
+ * 2. Inside an installed PWA (display-mode: standalone) there is no tab UI and
+ *    window.open("_blank") frequently does nothing at all. Clicking the button
+ *    on a phone's home-screen app opened no chat.
+ *
+ * So: navigate directly when standalone — Android/iOS hand a wa.me URL to the
+ * WhatsApp app and leave the PWA running behind it — and use a real anchor
+ * click in a normal tab, which is not popup-blocked from a user gesture and
+ * keeps the visitor's estimate on screen. */
+function openWhatsApp(url) {
+  if (!url) return false;
+  const standalone = matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+  if (standalone) { window.location.href = url; return true; }
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  return true;
+}
+
 /** First-person message the client sends to HSG. */
 function waQuoteMessage(data) {
   let m = `Hi ${SITE.firmName}, I'd like a formal quote.\n\n`;
@@ -737,22 +767,33 @@ function init() {
     if (!validateLead(form)) return;
     const data = Object.fromEntries(new FormData(form).entries());
 
-    const win = window.open(waLink(waQuoteMessage(data)), "_blank", "noopener");
+    const url = waLink(waQuoteMessage(data));
+    if (!url) { toast("Message us on " + SITE.whatsapp); return; }
+
+    /* The two environments need opposite ordering:
+     *
+     * Browser tab — open the chat FIRST, inside the user gesture, or the
+     * anchor click risks being treated as an unrequested popup. The page
+     * stays alive in the background, so the logging below still completes.
+     *
+     * Installed PWA — openWhatsApp() navigates this window away, which kills
+     * any in-flight request. So log FIRST and await it, then hand off. There
+     * is no popup permission to lose: a same-window navigation never needs
+     * user activation. */
+    const standalone = matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    if (!standalone) openWhatsApp(url);
 
     const btn = $("#lead-whatsapp");
     btn.classList.add("is-busy");
     try { await sendLead(Object.assign({}, data, { channel: "whatsapp" })); }
-    catch { /* the chat is already open; never block it on our logging */ }
+    catch { /* never block the chat on our own logging */ }
     btn.classList.remove("is-busy");
 
-    if (!win) {
-      // Popup blocked — give them a direct link rather than a dead end.
-      toast("Allow pop-ups, or message us on " + SITE.whatsapp);
-      return;
-    }
     toast("Opening WhatsApp — press send in the chat");
     closeModal("lead-modal");
     form.reset();
+
+    if (standalone) openWhatsApp(url);
   });
 
   form?.querySelectorAll("input").forEach(inp =>

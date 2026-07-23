@@ -4,7 +4,7 @@
  */
 /* sw.js — service worker for offline use.
    Bump CACHE when you change files so phones pick up the new version. */
-const CACHE = 'hsg-property-v14';
+const CACHE = 'hsg-property-v15';
 const ASSETS = [
   './',
   './index.html',
