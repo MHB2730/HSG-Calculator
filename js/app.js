@@ -17,7 +17,9 @@ const SITE = {
   appName: "HSG Property",
   firmName: "HSG Attorneys",
   tagline: "Property cost & bond toolkit",
-  disclaimer: "These calculators provide estimates for guidance only and do not constitute a formal quotation or legal advice. Figures are based on published tariffs as at July 2026 and may change — contact HSG Attorneys for a formal quote.",
+  // NOTE: no `disclaimer` key. The firm's disclaimer is now static markup in
+  // index.html (footer) so it renders even if this script fails to load —
+  // it is legal text, not UI copy. Edit it there, not here.
   // HSG offices — the "Call HSG" button offers these and best-effort highlights the nearest.
   offices: [
     { city: "Durban", region: "KwaZulu-Natal", phone: "+27 31 266 7751" },

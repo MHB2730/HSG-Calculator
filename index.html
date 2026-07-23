@@ -307,9 +307,36 @@
         <div class="footer-brand">
           <img class="footer-logo" src="assets/hsg-logo.png" alt="HSG Attorneys">
         </div>
-        <p class="disclaimer" data-site="disclaimer">
-          These calculators provide estimates for guidance only and do not constitute a formal quotation or legal advice. Figures are based on current published tariffs and may change. Contact HSG Attorneys for a formal quote.
-        </p>
+        <!-- Desktop-to-phone handoff. Deliberately hidden on small screens and
+             when already installed: a QR code pointing at THIS page is only
+             useful to someone on a computer who wants it on their phone. On a
+             phone it is noise, and the Add-to-Home-Screen prompt covers that
+             case instead. See the media queries in css/styles.css. -->
+        <aside class="qr-banner" id="qr-banner">
+          <!-- No loading="lazy": it is a 2 KB SVG, so deferring it saves nothing
+               and only adds a way for it to not appear. -->
+          <img class="qr-banner-code" src="assets/qr-app.svg" width="120" height="120"
+               alt="QR code linking to app.hsgattorneys.co.za" decoding="async">
+          <div class="qr-banner-copy">
+            <strong>Scan to open these calculators on your phone.</strong>
+            <span>Point your camera at the code — it opens this app, and you can add it to your home screen.</span>
+          </div>
+        </aside>
+
+        <!-- Static on purpose: this is the firm's legal disclaimer, so it must
+             still render if JavaScript fails to load. Do NOT move it back
+             behind data-site/fillSite(). Single source of truth — the plain
+             SITE.disclaimer string was removed from js/app.js. -->
+        <section class="disclaimer" aria-labelledby="disclaimer-heading">
+          <h2 class="disclaimer-title" id="disclaimer-heading">Disclaimer</h2>
+          <ul class="disclaimer-list">
+            <li>The ancillary costs will vary based on location.</li>
+            <li>Provision needs to be made by the user for advance municipal charges over the property (usually 3 months in advance).</li>
+            <li>For Sectional Title acquisitions, there are additional charges: provision for advance monthly levy payment should be made by the client as well as additional charges for more than one Unit and/or Exclusive Use Areas being purchased.</li>
+            <li>Conveyancing costs are increased annually.</li>
+            <li>All estimated calculations done here are provided for general information purposes only and do not constitute professional advice. We do not warrant the correctness of this information. For more accurate calculations, please contact us.</li>
+          </ul>
+        </section>
         <div class="footer-contact">
           <!-- "Track my transfer" links to the client portal (Supabase backend).
                Hidden until that backend goes live — restore this block then. -->

@@ -916,6 +916,44 @@ input::placeholder { color: var(--muted); font-weight: 400; }
 .footer-brand { display: flex; align-items: center; justify-content: center; gap: var(--space-3); }
 .footer-logo { height: 30px; width: auto; opacity: .95; }
 .disclaimer { font-size: var(--fs-fine); color: var(--on-chrome-soft); line-height: 1.5; }
+.disclaimer-title {
+  font-size: var(--fs-fine);
+  font-weight: 700;
+  color: var(--on-chrome);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+.disclaimer-list { list-style: disc; padding-left: 1.15em; display: grid; gap: 6px; text-align: left; }
+.disclaimer-list li { line-height: 1.5; }
+
+/* Desktop-to-phone QR handoff. Hidden on phones (you are already there) and
+   when running as an installed app — see the media queries below. */
+.qr-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: 560px;
+  margin: 0 auto var(--space-5);
+  padding: var(--space-4);
+  text-align: left;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--radius-sm);
+}
+.qr-banner-code {
+  width: 120px; height: 120px; flex: none;
+  background: #fff;             /* QR must sit on white to scan reliably */
+  border-radius: 8px;
+  padding: 6px;
+}
+.qr-banner-copy { display: grid; gap: 4px; }
+.qr-banner-copy strong { font-size: var(--fs-sm); color: var(--on-chrome); line-height: 1.35; }
+.qr-banner-copy span { font-size: var(--fs-fine); color: var(--on-chrome-soft); line-height: 1.45; }
+
+/* A QR to this very page is useless on the device already showing it. */
+@media (max-width: 700px) { .qr-banner { display: none; } }
+@media (display-mode: standalone) { .qr-banner { display: none; } }
 .footer-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
 .footer .btn-ghost { color: var(--on-chrome); border-color: rgba(255,255,255,.32); }
 .footer .btn-ghost:hover { border-color: #fff; background: rgba(255,255,255,.08); }
