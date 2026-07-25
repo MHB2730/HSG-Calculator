@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      # The calculators are the product. A wrong transfer duty or bond figure reaches
+      # clients as a quoted cost, so these three gate the build.
+      - name: Calculator tests
+        run: npm run test:calc
+
+      - name: Rates tests
+        run: npm run test:rates
+
+      # Validates tariffs.json before it can be uploaded — the script's own words are
+      # "safe to upload tariffs.json", so a failure here means the data is wrong.
+      - name: Tariff validation
+        run: npm run check:tariffs
+
+      # Non-blocking for now: js/mail-test.js has two pre-existing violations (an unused
+      # binding and a missing error cause). Fix those and drop continue-on-error so lint
+      # gates the build like everything else.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
