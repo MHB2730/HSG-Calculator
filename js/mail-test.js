@@ -67,7 +67,7 @@
     try {
       data = JSON.parse(text);
     } catch (e) {
-      throw new Error("Non-JSON (" + res.status + "): " + text.slice(0, 240));
+      throw new Error("Non-JSON (" + res.status + "): " + text.slice(0, 240), { cause: e });
     }
     if (!res.ok || data.ok === false) throw new Error(data.error || "HTTP " + res.status);
     return data;

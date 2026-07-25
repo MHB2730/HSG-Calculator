@@ -38,9 +38,5 @@ jobs:
       - name: Tariff validation
         run: npm run check:tariffs
 
-      # Non-blocking for now: js/mail-test.js has two pre-existing violations (an unused
-      # binding and a missing error cause). Fix those and drop continue-on-error so lint
-      # gates the build like everything else.
       - name: Lint
         run: npm run lint
-        continue-on-error: true
